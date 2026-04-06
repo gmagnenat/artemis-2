@@ -242,8 +242,12 @@ export function magnitude(p: PositionSample): number {
   return Math.sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
 }
 
+const EARTH_RADIUS = 6_371; // km
+const MOON_RADIUS = 1_737.4; // km
+
 /**
  * Convenience: get Earth + Moon distances at a given Date.
+ * Returns surface-to-surface distances (subtracts body radii).
  */
 export function getDistancesAt(
   spacecraft: PositionSample[],
@@ -253,8 +257,8 @@ export function getDistancesAt(
   const scPos = interpolatePosition(spacecraft, time);
   const moonPos = interpolatePosition(moon, time);
   return {
-    earth: magnitude(scPos),
-    moon: distance3D(scPos, moonPos),
+    earth: magnitude(scPos) - EARTH_RADIUS,
+    moon: distance3D(scPos, moonPos) - MOON_RADIUS,
   };
 }
 

@@ -1,86 +1,372 @@
 ---
 /**
- * NewsFeed — Mission log / comms feed.
- * Live stream embed + mission highlight cards.
+ * NewsFeed — Mission timeline.
+ * Vertical timeline with all major events, live "now" marker,
+ * past events bright, future events dimmed.
  */
 
-const highlights = [
+interface TimelineEvent {
+  met: string;
+  date: string;
+  title: string;
+  description: string;
+  tag: string;
+  tagColor: string;
+  /** Seconds after launch */
+  metSeconds: number;
+}
+
+const h = (hours: number) => hours * 3600;
+const d = (days: number) => days * 86400;
+
+const events: TimelineEvent[] = [
   {
-    day: "Day 1",
-    met: "T+00:08:44",
-    title: "Trans-Lunar Injection Burn",
-    description:
-      "ICPS upper stage fires for 18 minutes, accelerating Orion to 24,500 mph and committing the crew to the lunar trajectory.",
+    met: "T+00:00:00",
+    date: "Apr 1, 22:35 UTC",
+    title: "Liftoff",
+    description: "SLS clears the tower at Kennedy Space Center. 8.8 million pounds of thrust.",
+    tag: "LAUNCH",
+    tagColor: "text-accent-red",
+    metSeconds: 0,
+  },
+  {
+    met: "T+00:20:00",
+    date: "Apr 1, 22:55 UTC",
+    title: "Solar Array Deploy",
+    description: "Orion deploys solar arrays in Earth orbit. Spacecraft is now generating power.",
+    tag: "SYSTEMS",
+    tagColor: "text-accent-cyan",
+    metSeconds: h(0.33),
+  },
+  {
+    met: "T+00:49:50",
+    date: "Apr 1, 23:25 UTC",
+    title: "Perigee Raise Maneuver",
+    description: "First engine burn raises orbit to 2,223 x 185 km. Setting up for TLI.",
     tag: "PROPULSION",
     tagColor: "text-accent-gold",
+    metSeconds: h(0.83),
   },
   {
-    day: "Day 2",
-    met: "T+01:14:00",
-    title: "First Earthrise Photographs",
-    description:
-      "Crew captures high-resolution imagery of Earth receding through Orion's optical windows at 130,000 km distance.",
-    tag: "IMAGERY",
+    met: "T+01:47:57",
+    date: "Apr 2, 00:23 UTC",
+    title: "Apogee Raise Maneuver",
+    description: "Orbit raised to 70,377 km apogee. Orion is now in a highly elliptical orbit.",
+    tag: "PROPULSION",
+    tagColor: "text-accent-gold",
+    metSeconds: h(1.8),
+  },
+  {
+    met: "T+03:24:18",
+    date: "Apr 2, 01:59 UTC",
+    title: "Orion/ICPS Separation",
+    description: "Orion separates from the Interim Cryogenic Propulsion Stage. Flying free.",
+    tag: "SEPARATION",
     tagColor: "text-accent-cyan",
+    metSeconds: h(3.4),
   },
   {
-    day: "Day 5",
-    met: "T+04:06:30",
-    title: "Lunar Closest Approach",
-    description:
-      "Orion passes within 10,000 km of the lunar far side — the farthest any humans have traveled from Earth since Apollo 17.",
+    met: "T+05:04:00",
+    date: "Apr 2, 03:39 UTC",
+    title: "CubeSat Deployment",
+    description: "Four international CubeSats deploy at one-minute intervals. Argentina, Germany, South Korea, Saudi Arabia.",
+    tag: "DEPLOY",
+    tagColor: "text-lunar-300",
+    metSeconds: h(5.07),
+  },
+  {
+    met: "T+1/01:14",
+    date: "Apr 2, 23:49 UTC",
+    title: "Trans-Lunar Injection Burn",
+    description: "The big one. 5 minute 55 second burn commits the crew to the Moon. Delta-v: 388 m/s.",
+    tag: "TLI",
+    tagColor: "text-accent-gold",
+    metSeconds: d(1) + h(1.23),
+  },
+  {
+    met: "T+1/01:35",
+    date: "Apr 3, 00:10 UTC",
+    title: "Earth Shadow Entrance",
+    description: "Orion enters Earth's shadow. The crew sees darkness and stars for 66 minutes.",
     tag: "NAVIGATION",
     tagColor: "text-accent-blue",
+    metSeconds: d(1) + h(1.58),
   },
   {
-    day: "Day 10",
-    met: "T+09:22:15",
-    title: "Reentry & Splashdown",
-    description:
-      "Orion reenters Earth's atmosphere at Mach 32, enduring 2,760°C heat shield temperatures before splashdown in the Pacific.",
+    met: "T+4/04:28",
+    date: "Apr 6, 03:03 UTC",
+    title: "Trajectory Correction Burn OTC-3",
+    description: "18-second correction burn. Delta-v: 3 m/s. Fine-tuning the path to the Moon.",
+    tag: "PROPULSION",
+    tagColor: "text-accent-gold",
+    metSeconds: d(4) + h(4.47),
+  },
+  {
+    met: "T+4/07:03",
+    date: "Apr 6, 05:38 UTC",
+    title: "Enter Lunar Sphere of Influence",
+    description: "Orion crosses 62,800 km from the Moon. The Moon's gravity is now dominant.",
+    tag: "NAVIGATION",
+    tagColor: "text-accent-blue",
+    metSeconds: d(4) + h(7.06),
+  },
+  {
+    met: "T+5/00:26",
+    date: "Apr 6, 23:01 UTC",
+    title: "Closest Approach to the Moon",
+    description: "8,282.5 km from the lunar surface. The farthest humans have been from Earth: 413,146 km.",
+    tag: "LUNAR FLYBY",
+    tagColor: "text-accent-gold",
+    metSeconds: d(5) + h(0.43),
+  },
+  {
+    met: "T+5/18:52",
+    date: "Apr 7, 17:27 UTC",
+    title: "Exit Lunar Sphere of Influence",
+    description: "Orion leaves the Moon's gravitational domain. Heading home.",
+    tag: "NAVIGATION",
+    tagColor: "text-accent-blue",
+    metSeconds: d(5) + h(18.87),
+  },
+  {
+    met: "T+6/01:29",
+    date: "Apr 8, 00:04 UTC",
+    title: "Return Trajectory Correction #1",
+    description: "First of three return burns. Dialing in the reentry corridor.",
+    tag: "PROPULSION",
+    tagColor: "text-accent-gold",
+    metSeconds: d(6) + h(1.48),
+  },
+  {
+    met: "T+7/04:20",
+    date: "Apr 9, 02:55 UTC",
+    title: "Manual Piloting Demonstration",
+    description: "Crew hand-flies Orion for the first time. Testing manual handling qualities.",
+    tag: "PILOTING",
+    tagColor: "text-accent-cyan",
+    metSeconds: d(7) + h(4.33),
+  },
+  {
+    met: "T+9/01:29",
+    date: "Apr 11, 00:04 UTC",
+    title: "Entry Interface",
+    description: "122 km above Earth. Mach 32. Heat shield reaches 2,760°C. The crew feels 4g deceleration.",
+    tag: "REENTRY",
+    tagColor: "text-accent-red",
+    metSeconds: d(9) + h(1.48),
+  },
+  {
+    met: "T+9/01:42",
+    date: "Apr 11, 00:17 UTC",
+    title: "Splashdown",
+    description: "Three main parachutes deploy. Orion touches down in the Pacific Ocean off Baja California. Welcome home.",
     tag: "RECOVERY",
     tagColor: "text-accent-red",
+    metSeconds: d(9) + h(1.7),
   },
 ];
+
+// Precompute state for each event
+const launchTime = new Date("2026-04-01T22:35:12Z").getTime();
+const nowMet = Math.max(0, (Date.now() - launchTime) / 1000);
+
+const rendered = events.map((event, i) => {
+  const isPast = event.metSeconds <= nowMet;
+  const isCurrent = isPast && (i === events.length - 1 || events[i + 1].metSeconds > nowMet);
+  return {
+    ...event,
+    stateClass: isCurrent ? "is-current is-past" : isPast ? "is-past" : "is-future",
+    dotClass: isCurrent ? "timeline-dot current" : "timeline-dot",
+    showPulse: isCurrent,
+  };
+});
 ---
 
-<div id="news-feed-root" class="space-y-6">
-  <!-- Live Stream Embed -->
-  <div class="glass rounded-xl overflow-hidden">
-    <div class="relative aspect-video w-full bg-space-800">
-      <iframe
-        src="https://www.youtube.com/embed/6RwfNBtepa4?rel=0&modestbranding=1&playsinline=1"
-        class="absolute inset-0 w-full h-full"
-        title="NASA Artemis II Live Stream"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen
-        loading="lazy"
-      ></iframe>
-    </div>
-    <div class="flex items-center justify-between px-4 py-3 border-t border-glass-border">
-      <div class="flex items-center gap-2">
-        <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-        <span class="mono text-[10px] tracking-widest text-red-400 uppercase">NASA TV Live</span>
-      </div>
-      <span class="mono text-[10px] tracking-widest text-lunar-400 uppercase">Artemis II Mission Coverage</span>
-    </div>
-  </div>
-
-  <!-- Mission Highlights Log -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    {highlights.map((item) => (
-      <div class="glass rounded-xl p-5 group hover:bg-glass-hover transition-colors duration-300">
-        <div class="flex items-center justify-between mb-3">
-          <span class="mono text-[10px] tracking-widest text-lunar-400 uppercase">{item.day} · {item.met}</span>
-          <span class={`mono text-[10px] tracking-widest uppercase ${item.tagColor}`}>{item.tag}</span>
+<div id="news-feed-root">
+  <div class="timeline-container">
+    {rendered.map((event) => (
+      <div class={`timeline-event ${event.stateClass}`} data-met={event.metSeconds}>
+        <div class="timeline-dot-wrap">
+          {event.showPulse && <div class="timeline-dot-pulse"></div>}
+          <div class={event.dotClass}></div>
         </div>
-        <h3 class="font-heading font-extrabold text-sm uppercase tracking-wide text-lunar-100 mb-2">
-          {item.title}
-        </h3>
-        <p class="text-sm text-lunar-300 leading-relaxed">
-          {item.description}
-        </p>
+        <div class="timeline-content glass">
+          <div class="flex items-center gap-3 mb-2">
+            <span class={`mono text-[10px] tracking-[0.2em] uppercase ${event.tagColor}`}>{event.tag}</span>
+            <span class="mono text-[10px] text-lunar-400">{event.met}</span>
+          </div>
+          <h3 class="font-heading font-extrabold text-base sm:text-lg uppercase tracking-wide text-lunar-100 mb-1.5">{event.title}</h3>
+          <p class="text-sm text-lunar-300 leading-relaxed">{event.description}</p>
+          <p class="mono text-[10px] text-lunar-400/50 mt-2">{event.date}</p>
+        </div>
       </div>
     ))}
+    <div id="timeline-now-label" class="hidden">
+      <span class="mono text-[10px] tracking-[0.3em] text-accent-gold uppercase">Now</span>
+    </div>
   </div>
 </div>
+
+<style>
+  .timeline-container {
+    position: relative;
+    padding-left: 32px;
+  }
+
+  /* Vertical line */
+  .timeline-container::before {
+    content: "";
+    position: absolute;
+    left: 7px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(
+      to bottom,
+      var(--color-accent-cyan) 0%,
+      var(--color-glass-border) 30%,
+      var(--color-glass-border) 70%,
+      transparent 100%
+    );
+  }
+
+  .timeline-event {
+    position: relative;
+    padding-bottom: 24px;
+    transition: opacity 0.3s;
+  }
+
+  .timeline-event.is-future {
+    opacity: 0.35;
+  }
+
+  .timeline-event.is-past {
+    opacity: 1;
+  }
+
+  .timeline-event.is-current {
+    opacity: 1;
+  }
+
+  /* Dot */
+  .timeline-dot-wrap {
+    position: absolute;
+    left: -32px;
+    top: 20px;
+    width: 15px;
+    height: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .timeline-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--color-space-600);
+    border: 1.5px solid var(--color-lunar-400);
+    z-index: 1;
+    transition: all 0.3s;
+  }
+
+  .is-past .timeline-dot {
+    background: var(--color-accent-cyan);
+    border-color: var(--color-accent-cyan);
+  }
+
+  .timeline-dot.current {
+    background: var(--color-accent-gold);
+    border-color: var(--color-accent-gold);
+    width: 12px;
+    height: 12px;
+  }
+
+  .timeline-dot-pulse {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--color-accent-gold);
+    opacity: 0.2;
+    animation: dotPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes dotPulse {
+    0%, 100% { transform: scale(1); opacity: 0.2; }
+    50% { transform: scale(1.5); opacity: 0; }
+  }
+
+  /* Content card */
+  .timeline-content {
+    padding: 16px 20px;
+    margin-left: 4px;
+    transition: background 0.3s;
+  }
+
+  .timeline-event:hover .timeline-content {
+    background: var(--color-glass-hover);
+  }
+
+  .is-current .timeline-content {
+    border-color: rgba(245, 158, 11, 0.15);
+  }
+
+  /* Now label */
+  #timeline-now-label {
+    position: absolute;
+    left: -75px;
+    z-index: 2;
+  }
+</style>
+
+<script>
+  import { MISSION } from "../lib/mission";
+
+  const launchMs = MISSION.launchTime.getTime();
+
+  function updateTimeline() {
+    const nowMet = Math.max(0, (Date.now() - launchMs) / 1000);
+    const events = document.querySelectorAll<HTMLElement>(".timeline-event");
+
+    let currentIdx = -1;
+
+    events.forEach((el, i) => {
+      const met = Number(el.dataset.met);
+      const isPast = met <= nowMet;
+      const nextMet = events[i + 1] ? Number(events[i + 1].dataset.met) : Infinity;
+      const isCurrent = isPast && nextMet > nowMet;
+
+      el.classList.toggle("is-past", isPast);
+      el.classList.toggle("is-future", !isPast);
+      el.classList.toggle("is-current", isCurrent);
+
+      const dot = el.querySelector(".timeline-dot");
+      dot?.classList.toggle("current", isCurrent);
+
+      // Add/remove pulse
+      let pulse = el.querySelector(".timeline-dot-pulse");
+      if (isCurrent && !pulse) {
+        pulse = document.createElement("div");
+        pulse.className = "timeline-dot-pulse";
+        el.querySelector(".timeline-dot-wrap")?.prepend(pulse);
+        currentIdx = i;
+      } else if (!isCurrent && pulse) {
+        pulse.remove();
+      }
+
+      if (isCurrent) currentIdx = i;
+    });
+
+    // Position the "now" label
+    const nowLabel = document.getElementById("timeline-now-label");
+    if (nowLabel && currentIdx >= 0) {
+      const currentEl = events[currentIdx];
+      nowLabel.classList.remove("hidden");
+      nowLabel.style.top = `${currentEl.offsetTop + 16}px`;
+    }
+  }
+
+  updateTimeline();
+  setInterval(updateTimeline, 10_000);
+</script>

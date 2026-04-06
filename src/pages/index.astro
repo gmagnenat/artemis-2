@@ -141,7 +141,7 @@ import { CREW } from "../lib/astronauts";
 
   const newsSection = document.getElementById("news");
   const newsHeader = newsSection?.querySelector(".mb-12");
-  const newsContent = newsSection?.querySelector("#news-feed-root");
+  const timelineEvents = document.querySelectorAll(".timeline-event");
 
   // ── Initial states (hidden before animation) ──
   if (heroTitleSpans) {
@@ -167,9 +167,8 @@ import { CREW } from "../lib/astronauts";
   if (newsHeader) {
     gsap.set(newsHeader, { opacity: 0, x: -80 });
   }
-  if (newsContent) {
-    gsap.set(newsContent, { opacity: 0, y: 40 });
-  }
+  // Timeline events start slightly shifted (past events will animate in, future stay dimmed)
+  gsap.set(timelineEvents, { opacity: 0, x: 30 });
 
   // ── 1. Hero title reveal (on page load) ──
   const heroTl = gsap.timeline({ defaults: { ease: "power3.out" } });
@@ -270,18 +269,19 @@ import { CREW } from "../lib/astronauts";
     });
   }
 
-  if (newsContent) {
-    gsap.to(newsContent, {
-      opacity: 1,
-      y: 0,
-      duration: 1,
+  // Timeline events stagger in as you scroll
+  timelineEvents.forEach((event) => {
+    gsap.to(event, {
+      opacity: event.classList.contains("is-future") ? 0.35 : 1,
+      x: 0,
+      duration: 0.6,
       ease: "power3.out",
       scrollTrigger: {
-        trigger: newsContent,
-        start: "top 80%",
+        trigger: event,
+        start: "top 85%",
       },
     });
-  }
+  });
 
   // ── 8. Scroll indicator fades out on scroll ──
   if (scrollIndicator) {

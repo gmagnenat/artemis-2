@@ -36,7 +36,11 @@ export interface TrajectoryData {
 // Horizons API helpers
 // ---------------------------------------------------------------------------
 
-const HORIZONS_API = "https://ssd.jpl.nasa.gov/api/horizons.api";
+// Use Vite proxy in dev to avoid CORS, direct URL in production (via Vercel Edge Function)
+const HORIZONS_API =
+  typeof window !== "undefined" && window.location.hostname === "localhost"
+    ? "/api/horizons"
+    : "https://ssd.jpl.nasa.gov/api/horizons.api";
 
 /** NAIF IDs */
 const SPACECRAFT_ID = "-1024"; // Artemis II / Orion
@@ -138,8 +142,8 @@ export function parseHorizonsResult(text: string): PositionSample[] {
 // ---------------------------------------------------------------------------
 
 async function fetchBody(naifId: string): Promise<PositionSample[]> {
-  const start = "2026-04-01";
-  const stop = "2026-04-12"; // one day past splashdown for margin
+  const start = "2026-04-02 02:00"; // trajectory starts after ICPS separation (Apr 2 01:58:32 TDB)
+  const stop = "2026-04-10 23:00"; // ephemeris ends ~Apr 10 23:54 TDB
   const step = "1 h";
 
   const url = buildUrl(naifId, start, stop, step);

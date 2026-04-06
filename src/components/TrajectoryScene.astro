@@ -97,6 +97,7 @@
   import * as THREE from "three";
   import { OrbitControls } from "three/addons/controls/OrbitControls.js";
   import { MISSION } from "@/lib/mission";
+  import { loadTrajectory, interpolatePosition, type TrajectoryData } from "@/lib/trajectory";
 
   // ---------------------------------------------------------------------------
   // Helpers
@@ -259,55 +260,59 @@
     moon.add(moonGlow);
 
     // -----------------------------------------------------------------------
-    // Trajectory path — figure-eight approximation
+    // Trajectory path — loaded from JPL Horizons API
     //
-    // The Artemis II free-return trajectory:
-    //   1. Launch from Earth, orbit
-    //   2. TLI burn → coast outbound
-    //   3. Swing behind the Moon
-    //   4. Free-return coast back to Earth
-    //
-    // We approximate this with a CatmullRom curve.
+    // Real data is in km (J2000 ecliptic, Earth-centered).
+    // Scale: moonDistance scene units = 384,400 km
     // -----------------------------------------------------------------------
 
-    const trajectoryPoints = [
-      new THREE.Vector3(0, 0, 0),               // Earth departure
-      new THREE.Vector3(15, 8, 10),              // LEO / TLI
-      new THREE.Vector3(40, 15, 20),             // Early outbound
-      new THREE.Vector3(70, 12, 15),             // Mid outbound
-      new THREE.Vector3(100, 5, 5),              // Approach Moon
-      new THREE.Vector3(115, -2, -5),            // Near Moon
-      new THREE.Vector3(125, -8, -15),           // Behind Moon (flyby)
-      new THREE.Vector3(130, -5, -25),           // Swing around
-      new THREE.Vector3(125, 3, -30),            // Exit flyby
-      new THREE.Vector3(110, 10, -25),           // Early return
-      new THREE.Vector3(80, 8, -20),             // Mid return coast
-      new THREE.Vector3(50, -5, -15),            // Late return
-      new THREE.Vector3(25, -12, -8),            // Approach Earth
-      new THREE.Vector3(8, -6, -3),              // Reentry corridor
-      new THREE.Vector3(0, 0, 0),                // Splashdown (back at Earth)
-    ];
+    const SCALE = moonDistance / 384_400; // scene units per km
 
-    const trajectoryCurve = new THREE.CatmullRomCurve3(trajectoryPoints, false, "catmullrom", 0.5);
-    const curvePoints = trajectoryCurve.getPoints(300);
+    function kmToScene(x: number, y: number, z: number): THREE.Vector3 {
+      return new THREE.Vector3(x * SCALE, z * SCALE, -y * SCALE);
+    }
 
-    // Trajectory line
-    const lineGeo = new THREE.BufferGeometry().setFromPoints(curvePoints);
+    // Trajectory line and curve — built once data loads.
+    let trajectoryCurve: THREE.CatmullRomCurve3 | null = null;
+    let trajectoryLine: THREE.Line | null = null;
+    let trajectoryData: TrajectoryData | null = null;
+
+    // Start with a placeholder line; replace once Horizons data arrives.
+    const placeholderGeo = new THREE.BufferGeometry();
     const lineMat = new THREE.LineBasicMaterial({
       color: 0x06b6d4,
       transparent: true,
       opacity: 0.4,
     });
-    scene.add(new THREE.Line(lineGeo, lineMat));
+    trajectoryLine = new THREE.Line(placeholderGeo, lineMat);
+    scene.add(trajectoryLine);
 
-    // Brighter inner line for depth
-    const lineInnerMat = new THREE.LineBasicMaterial({
-      color: 0x06b6d4,
-      transparent: true,
-      opacity: 0.15,
-      linewidth: 1,
+    // Fetch real data and build the curve
+    loadTrajectory().then((data) => {
+      trajectoryData = data;
+
+      // Build spacecraft trajectory curve from real positions
+      const scenePoints = data.spacecraft.map((s) => kmToScene(s.x, s.y, s.z));
+      trajectoryCurve = new THREE.CatmullRomCurve3(scenePoints, false, "catmullrom", 0.3);
+      const curvePoints = trajectoryCurve.getPoints(500);
+
+      // Update the trajectory line
+      const lineGeo = new THREE.BufferGeometry().setFromPoints(curvePoints);
+      if (trajectoryLine) {
+        trajectoryLine.geometry.dispose();
+        trajectoryLine.geometry = lineGeo;
+      }
+
+      // Update Moon position from real data (use mid-mission Moon position)
+      const midIdx = Math.floor(data.moon.length / 2);
+      if (data.moon[midIdx]) {
+        const moonPos = kmToScene(data.moon[midIdx].x, data.moon[midIdx].y, data.moon[midIdx].z);
+        moon.position.copy(moonPos);
+        controls.target.set(moonPos.x / 2, 0, moonPos.z / 2); // center between Earth and Moon
+      }
+
+      console.info(`[TrajectoryScene] Loaded ${data.spacecraft.length} trajectory points`);
     });
-    scene.add(new THREE.Line(lineGeo.clone(), lineInnerMat));
 
     // -----------------------------------------------------------------------
     // Orion capsule (glowing dot)
@@ -327,17 +332,26 @@
     orion.add(orionPulse);
 
     // -----------------------------------------------------------------------
-    // Mission progress → Orion position on curve
+    // Mission progress → Orion position
+    // Uses real Horizons data when available, falls back to curve parameter.
     // -----------------------------------------------------------------------
 
     const totalMissionSeconds =
       (MISSION.splashdownTime.getTime() - MISSION.launchTime.getTime()) / 1000;
 
-    function getOrionT(): number {
-      const met = getMissionElapsedTime();
-      if (met <= 0) return 0;
-      if (met >= totalMissionSeconds) return 1;
-      return met / totalMissionSeconds;
+    function getOrionPosition(): THREE.Vector3 | null {
+      // If we have real data, interpolate from Horizons positions
+      if (trajectoryData) {
+        const pos = interpolatePosition(trajectoryData.spacecraft, new Date());
+        if (pos) return kmToScene(pos.x, pos.y, pos.z);
+      }
+      // Fallback: use curve parameter
+      if (trajectoryCurve) {
+        const met = getMissionElapsedTime();
+        const t = Math.max(0, Math.min(0.999, met / totalMissionSeconds));
+        return trajectoryCurve.getPointAt(t);
+      }
+      return null;
     }
 
     // -----------------------------------------------------------------------
@@ -360,9 +374,8 @@
       earth.rotation.y += 0.002;
 
       // Orion position
-      const t = getOrionT();
-      const pos = trajectoryCurve.getPointAt(Math.min(t, 0.999));
-      orion.position.copy(pos);
+      const pos = getOrionPosition();
+      if (pos) orion.position.copy(pos);
 
       // Pulse effect on Orion glow
       const pulse = 0.3 + 0.1 * Math.sin(Date.now() * 0.003);

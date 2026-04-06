@@ -8,3 +8,4 @@ dist/
 .gstack/
 .todos/
 AGENTS.md
+.DS_Store

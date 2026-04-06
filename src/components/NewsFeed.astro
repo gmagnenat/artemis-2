@@ -1,0 +1,86 @@
+---
+/**
+ * NewsFeed — Mission log / comms feed.
+ * Live stream embed + mission highlight cards.
+ */
+
+const highlights = [
+  {
+    day: "Day 1",
+    met: "T+00:08:44",
+    title: "Trans-Lunar Injection Burn",
+    description:
+      "ICPS upper stage fires for 18 minutes, accelerating Orion to 24,500 mph and committing the crew to the lunar trajectory.",
+    tag: "PROPULSION",
+    tagColor: "text-accent-gold",
+  },
+  {
+    day: "Day 2",
+    met: "T+01:14:00",
+    title: "First Earthrise Photographs",
+    description:
+      "Crew captures high-resolution imagery of Earth receding through Orion's optical windows at 130,000 km distance.",
+    tag: "IMAGERY",
+    tagColor: "text-accent-cyan",
+  },
+  {
+    day: "Day 5",
+    met: "T+04:06:30",
+    title: "Lunar Closest Approach",
+    description:
+      "Orion passes within 10,000 km of the lunar far side — the farthest any humans have traveled from Earth since Apollo 17.",
+    tag: "NAVIGATION",
+    tagColor: "text-accent-blue",
+  },
+  {
+    day: "Day 10",
+    met: "T+09:22:15",
+    title: "Reentry & Splashdown",
+    description:
+      "Orion reenters Earth's atmosphere at Mach 32, enduring 2,760°C heat shield temperatures before splashdown in the Pacific.",
+    tag: "RECOVERY",
+    tagColor: "text-accent-red",
+  },
+];
+---
+
+<div id="news-feed-root" class="space-y-6">
+  <!-- Live Stream Embed -->
+  <div class="glass rounded-xl overflow-hidden">
+    <div class="relative aspect-video w-full bg-space-800">
+      <iframe
+        src="https://www.youtube.com/embed/6RwfNBtepa4?rel=0&modestbranding=1&playsinline=1"
+        class="absolute inset-0 w-full h-full"
+        title="NASA Artemis II Live Stream"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+        loading="lazy"
+      ></iframe>
+    </div>
+    <div class="flex items-center justify-between px-4 py-3 border-t border-glass-border">
+      <div class="flex items-center gap-2">
+        <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+        <span class="mono text-[10px] tracking-widest text-red-400 uppercase">NASA TV Live</span>
+      </div>
+      <span class="mono text-[10px] tracking-widest text-lunar-400 uppercase">Artemis II Mission Coverage</span>
+    </div>
+  </div>
+
+  <!-- Mission Highlights Log -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    {highlights.map((item) => (
+      <div class="glass rounded-xl p-5 group hover:bg-glass-hover transition-colors duration-300">
+        <div class="flex items-center justify-between mb-3">
+          <span class="mono text-[10px] tracking-widest text-lunar-400 uppercase">{item.day} · {item.met}</span>
+          <span class={`mono text-[10px] tracking-widest uppercase ${item.tagColor}`}>{item.tag}</span>
+        </div>
+        <h3 class="font-heading font-extrabold text-sm uppercase tracking-wide text-lunar-100 mb-2">
+          {item.title}
+        </h3>
+        <p class="text-sm text-lunar-300 leading-relaxed">
+          {item.description}
+        </p>
+      </div>
+    ))}
+  </div>
+</div>

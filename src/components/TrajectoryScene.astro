@@ -6,29 +6,6 @@
 ---
 
 <div class="space-y-4">
-  <!-- NASA Live Video -->
-  <div class="relative rounded-xl overflow-hidden">
-    <div class="relative aspect-video w-full bg-space-800">
-      <iframe
-        src="https://www.youtube.com/embed/6RwfNBtepa4?autoplay=1&mute=1&rel=0&modestbranding=1&playsinline=1"
-        class="absolute inset-0 w-full h-full"
-        allow="autoplay; encrypted-media"
-        allowfullscreen
-        loading="lazy"
-      ></iframe>
-    </div>
-    <!-- Live badge -->
-    <div class="absolute top-3 left-3 flex items-center gap-2 glass !bg-space-900/70 px-3 py-1.5 rounded-full">
-      <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-      <span class="mono text-[10px] tracking-widest text-red-400 uppercase">Live</span>
-    </div>
-    <div class="absolute top-3 right-3 glass !bg-space-900/70 px-3 py-1.5 rounded-full">
-      <span class="mono text-[10px] tracking-widest text-lunar-400 uppercase">
-        Day <span id="mc-day">--</span> · Views from Orion
-      </span>
-    </div>
-  </div>
-
   <!-- Trajectory + Telemetry panel -->
   <div class="glass rounded-xl p-5 sm:p-6">
     <!-- Trajectory diagram -->
@@ -131,7 +108,7 @@
   const phaseEl = document.getElementById("mc-phase")!;
   const earthDistEl = document.getElementById("mc-earth-dist")!;
   const moonDistEl = document.getElementById("mc-moon-dist")!;
-  const dayEl = document.getElementById("mc-day")!;
+  const dayEl = document.getElementById("mc-day");
   const orionDot = document.getElementById("mc-orion")!;
   const orionGlow = document.getElementById("mc-orion-glow")!;
   const orionLabel = document.getElementById("mc-orion-label")!;
@@ -181,7 +158,7 @@
     metEl.textContent = formatMET(met);
     phaseEl.textContent = phase.label;
     phaseEl.style.color = phase.color;
-    dayEl.textContent = String(day);
+    if (dayEl) dayEl.textContent = String(day);
 
     if (trajectoryData) {
       const dist = getDistancesAt(trajectoryData.spacecraft, trajectoryData.moon, new Date());

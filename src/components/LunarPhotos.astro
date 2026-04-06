@@ -5,18 +5,24 @@
  * after the lunar flyby.
  */
 
-const placeholders = [
+const photos = [
   {
-    label: "Far side approach",
-    note: "Photo pending -- closest approach tonight",
+    label: "Full Moon — Near & Far Side",
+    caption: "April 6, 2026 — Fully illuminated view during flyby approach",
+    src: "https://images-assets.nasa.gov/image/art002e009212/art002e009212~large.jpg",
+    credit: "NASA / Artemis II Crew",
   },
   {
-    label: "Lunar surface detail",
-    note: "Photo pending -- awaiting downlink",
+    label: "Orientale Basin Region",
+    caption: "April 6, 2026 — Lunar surface near the Orientale impact basin",
+    src: "https://www.nasa.gov/wp-content/uploads/2026/04/image.png?w=2048",
+    credit: "NASA / Artemis II Crew",
   },
   {
     label: "Earthrise from Orion",
-    note: "Photo pending -- post-flyby release",
+    caption: "April 6, 2026 — Earth rises above the lunar horizon, 252,000+ miles away",
+    src: "https://www.nasa.gov/wp-content/uploads/2026/04/earthrise.jpg?w=766",
+    credit: "NASA / Artemis II Crew",
   },
 ];
 ---
@@ -31,79 +37,30 @@ const placeholders = [
         <span class="text-accent-gold">of the Moon</span>
       </h2>
       <p class="text-lunar-300 mt-4 text-base max-w-md">
-        The crew of Artemis II will photograph the lunar far side during their flyby -- views no human has seen in over 50 years.
+        The crew of Artemis II photographed the lunar far side during their flyby -- views no human has seen in over 50 years.
       </p>
     </div>
 
     <!-- Photo grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {placeholders.map((item) => (
+      {photos.map((photo) => (
         <div class="glass overflow-hidden group">
-          <!-- Dark placeholder area -->
-          <div class="relative aspect-[4/3] bg-space-800 flex flex-col items-center justify-center gap-4">
-            <!-- Subtle moon icon -->
-            <svg
-              width="48"
-              height="48"
-              viewBox="0 0 48 48"
-              fill="none"
-              class="text-lunar-400/15"
-            >
-              <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="1" />
-              <path
-                d="M28 8c-6 4-10 12-10 20s4 12 10 16"
-                stroke="currentColor"
-                stroke-width="0.8"
-                opacity="0.5"
-              />
-              <circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="0.5" opacity="0.3" />
-              <circle cx="30" cy="28" r="4" stroke="currentColor" stroke-width="0.5" opacity="0.3" />
-              <circle cx="22" cy="32" r="2" stroke="currentColor" stroke-width="0.5" opacity="0.3" />
-            </svg>
-            <p class="mono text-[11px] text-lunar-300/60 tracking-[0.15em] uppercase text-center px-4">
-              {item.note}
-            </p>
-
-            <!-- Scan line animation -->
-            <div class="absolute inset-0 overflow-hidden pointer-events-none">
-              <div class="scan-line"></div>
-            </div>
+          <div class="relative aspect-[4/3] bg-space-800 overflow-hidden">
+            <img
+              src={photo.src}
+              alt={photo.label}
+              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              loading="lazy"
+            />
           </div>
-
-          <!-- Card footer -->
           <div class="px-5 py-4 border-t border-glass-border">
-            <p class="font-heading font-extrabold text-sm uppercase tracking-wide text-lunar-200">{item.label}</p>
-            <p class="mono text-[10px] text-lunar-300 mt-1 tracking-wider uppercase">Awaiting NASA release</p>
+            <p class="font-heading font-extrabold text-sm uppercase tracking-wide text-lunar-200">{photo.label}</p>
+            <p class="mono text-[10px] text-lunar-300 mt-1 tracking-wider">{photo.caption}</p>
+            <p class="mono text-[9px] text-lunar-400/60 mt-1">{photo.credit}</p>
           </div>
         </div>
       ))}
     </div>
-
-    <!-- Note -->
-    <p class="mono text-[11px] text-lunar-300/60 tracking-[0.15em] text-center mt-10 uppercase">
-      NASA imagery will be published after the lunar flyby
-    </p>
   </div>
 </section>
 
-<style>
-  .scan-line {
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      var(--color-accent-gold) 50%,
-      transparent 100%
-    );
-    opacity: 0.08;
-    animation: scanMove 4s ease-in-out infinite;
-  }
-
-  @keyframes scanMove {
-    0%, 100% { top: 10%; }
-    50% { top: 90%; }
-  }
-</style>

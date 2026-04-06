@@ -1,284 +1,437 @@
 ---
 /**
- * TrajectoryScene — SVG trajectory with live Orion position.
- * Uses a hand-crafted free-return trajectory shape matching the published
- * Artemis II profile, with Orion's position driven by mission elapsed time.
+ * TrajectoryScene — Three.js trajectory with the hand-crafted free-return
+ * shape from our SVG, lifted into 3D with Z-depth for interactivity.
+ * Falls back to a static SVG on mobile (< 768px) or no WebGL.
  */
 ---
 
-<div id="trajectory-container" class="relative w-full">
-  <svg
-    id="trajectory-svg"
-    viewBox="0 0 1000 520"
-    class="w-full h-auto"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <defs>
-      <radialGradient id="earth-glow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.35" />
-        <stop offset="50%" stop-color="#3b82f6" stop-opacity="0.08" />
-        <stop offset="100%" stop-color="#3b82f6" stop-opacity="0" />
-      </radialGradient>
-      <radialGradient id="moon-glow-g" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#94a3b8" stop-opacity="0.25" />
-        <stop offset="50%" stop-color="#94a3b8" stop-opacity="0.05" />
-        <stop offset="100%" stop-color="#94a3b8" stop-opacity="0" />
-      </radialGradient>
-      <radialGradient id="orion-glow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.9" />
-        <stop offset="30%" stop-color="#f59e0b" stop-opacity="0.25" />
-        <stop offset="100%" stop-color="#f59e0b" stop-opacity="0" />
-      </radialGradient>
-      <!-- Trajectory gradient: blue near Earth, cyan outbound, gold at Moon, cyan return -->
-      <linearGradient id="traj-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="#3b82f6" />
-        <stop offset="40%" stop-color="#06b6d4" />
-        <stop offset="50%" stop-color="#f59e0b" />
-        <stop offset="60%" stop-color="#06b6d4" />
-        <stop offset="100%" stop-color="#3b82f6" />
-      </linearGradient>
-      <filter id="glow-filter">
-        <feGaussianBlur stdDeviation="2" result="blur" />
-        <feMerge>
-          <feMergeNode in="blur" />
-          <feMergeNode in="SourceGraphic" />
-        </feMerge>
-      </filter>
-    </defs>
-
-    <!-- Stars -->
-    <g id="stars" fill="white" opacity="0.3"></g>
-
-    <!--
-      Artemis II free-return trajectory (top-down schematic).
-      The path goes: Earth → outbound coast (curving up) → behind the Moon
-      (tight loop around far side) → return coast (curving down) → Earth.
-      The outbound and return legs are separated vertically to show the
-      figure-eight clearly. The lunar flyby loop wraps behind the Moon.
-    -->
-
-    <!-- Full trajectory path -->
-    <path
-      id="trajectory-path"
-      d="M 140 260
-         C 250 160, 450 100, 650 130
-         C 750 145, 820 180, 850 230
-         C 875 270, 875 290, 850 320
-         C 820 370, 750 400, 650 390
-         C 450 370, 250 340, 140 260"
-      fill="none"
-      stroke="url(#traj-grad)"
-      stroke-width="1.5"
-      opacity="0.5"
-    />
-
-    <!-- Brighter glow version of the path -->
-    <path
-      id="trajectory-glow"
-      d="M 140 260
-         C 250 160, 450 100, 650 130
-         C 750 145, 820 180, 850 230
-         C 875 270, 875 290, 850 320
-         C 820 370, 750 400, 650 390
-         C 450 370, 250 340, 140 260"
-      fill="none"
-      stroke="#06b6d4"
-      stroke-width="4"
-      opacity="0.07"
-      filter="url(#glow-filter)"
-    />
-
-    <!-- Completed portion (drawn by JS) -->
-    <path
-      id="trajectory-completed"
-      d=""
-      fill="none"
-      stroke="#06b6d4"
-      stroke-width="2.5"
-      opacity="0.6"
-      stroke-linecap="round"
-    />
-
-    <!-- Earth -->
-    <circle cx="140" cy="260" r="55" fill="url(#earth-glow)" />
-    <circle cx="140" cy="260" r="18" fill="#0f2847" stroke="#3b82f6" stroke-width="1.5" />
-    <!-- Earth surface hint -->
-    <circle cx="140" cy="260" r="18" fill="none" stroke="#1e5a9e" stroke-width="0.5" stroke-dasharray="3 5" opacity="0.4" />
-    <text x="140" y="295" text-anchor="middle" fill="#64748b" font-size="13" font-family="'Space Grotesk', sans-serif">Earth</text>
-
-    <!-- Moon -->
-    <circle cx="830" cy="275" r="35" fill="url(#moon-glow-g)" />
-    <circle cx="830" cy="275" r="8" fill="#3a3a40" stroke="#94a3b8" stroke-width="1" />
-    <text x="830" y="300" text-anchor="middle" fill="#64748b" font-size="13" font-family="'Space Grotesk', sans-serif">Moon</text>
-
-    <!-- Distance line Earth → Orion (dashed) -->
-    <line id="dist-line" x1="140" y1="260" x2="140" y2="260" stroke="#3b82f6" stroke-width="0.5" stroke-dasharray="4 4" opacity="0.15" />
-
-    <!-- Orion -->
-    <circle id="orion-halo" cx="140" cy="260" r="20" fill="url(#orion-glow)" />
-    <circle id="orion-pulse" cx="140" cy="260" r="8" fill="#f59e0b" opacity="0.12">
-      <animate attributeName="r" values="8;15;8" dur="2.5s" repeatCount="indefinite" />
-      <animate attributeName="opacity" values="0.12;0;0.12" dur="2.5s" repeatCount="indefinite" />
-    </circle>
-    <circle id="orion-dot" cx="140" cy="260" r="4.5" fill="#f59e0b" />
-    <text id="orion-label" x="140" y="245" text-anchor="middle" fill="#f59e0b" font-size="10" font-family="'JetBrains Mono', monospace" opacity="0.9">ORION</text>
-
-    <!-- Mission phase markers along the path -->
-    <g id="phase-markers" fill="none" opacity="0.4">
-      <!-- TLI marker -->
-      <circle cx="220" cy="205" r="2" fill="#f59e0b" opacity="0.5" />
-      <text x="220" y="195" text-anchor="middle" fill="#64748b" font-size="8" font-family="'JetBrains Mono', monospace">TLI</text>
-
-      <!-- Closest approach marker -->
-      <circle cx="862" cy="275" r="2" fill="#f59e0b" opacity="0.5" />
-      <text x="895" y="270" text-anchor="middle" fill="#64748b" font-size="8" font-family="'JetBrains Mono', monospace">FLYBY</text>
+<!-- Mobile / no-WebGL fallback (same SVG as before, simplified) -->
+<div id="trajectory-fallback" class="hidden w-full">
+  <svg viewBox="0 0 1000 520" class="w-full h-auto" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1000" height="520" fill="#04060b" rx="12" />
+    <g fill="white" opacity="0.3">
+      <circle cx="80" cy="40" r="1" /><circle cx="200" cy="80" r="0.8" />
+      <circle cx="400" cy="50" r="1.1" /><circle cx="600" cy="30" r="0.7" />
+      <circle cx="800" cy="70" r="1" /><circle cx="150" cy="400" r="0.9" />
+      <circle cx="500" cy="450" r="0.8" /><circle cx="900" cy="420" r="1" />
     </g>
-
-    <!-- Distance readout -->
-    <text id="dist-text" x="140" y="475" text-anchor="start" fill="#3b82f6" font-size="11" font-family="'JetBrains Mono', monospace" opacity="0.6"></text>
+    <path d="M 140 260 C 250 160,450 100,650 130 C 750 145,820 180,850 230 C 875 270,875 290,850 320 C 820 370,750 400,650 390 C 450 370,250 340,140 260" fill="none" stroke="#06b6d4" stroke-width="1.5" opacity="0.5" />
+    <circle cx="140" cy="260" r="18" fill="#0f2847" stroke="#3b82f6" stroke-width="1.5" />
+    <text x="140" y="295" text-anchor="middle" fill="#64748b" font-size="13" font-family="sans-serif">Earth</text>
+    <circle cx="830" cy="275" r="8" fill="#3a3a40" stroke="#94a3b8" stroke-width="1" />
+    <text x="830" y="300" text-anchor="middle" fill="#64748b" font-size="13" font-family="sans-serif">Moon</text>
+    <circle cx="500" cy="120" r="5" fill="#f59e0b" opacity="0.9">
+      <animate attributeName="opacity" values="0.9;0.5;0.9" dur="2s" repeatCount="indefinite" />
+    </circle>
+    <text x="500" y="110" text-anchor="middle" fill="#f59e0b" font-size="10" font-family="monospace">ORION</text>
   </svg>
 </div>
 
+<!-- 3D Canvas -->
+<div id="trajectory-canvas" class="relative w-full aspect-[2/1] max-h-[600px] rounded-xl overflow-hidden">
+  <canvas id="trajectory-gl" class="w-full h-full block"></canvas>
+  <div id="trajectory-loading" class="absolute inset-0 flex items-center justify-center bg-space-900/80 backdrop-blur-sm transition-opacity duration-500">
+    <div class="text-center">
+      <div class="inline-block w-8 h-8 border-2 border-accent-cyan/30 border-t-accent-cyan rounded-full animate-spin mb-3"></div>
+      <p class="mono text-xs text-lunar-400">Initializing trajectory...</p>
+    </div>
+  </div>
+  <!-- Distance readout overlay -->
+  <div class="absolute bottom-3 left-4 mono text-xs text-accent-blue/60" id="dist-readout"></div>
+  <!-- Drag hint -->
+  <div id="drag-hint" class="absolute bottom-3 right-4 mono text-[10px] text-lunar-400/40 transition-opacity duration-1000">drag to rotate</div>
+</div>
+
 <script>
+  import * as THREE from "three";
+  import { OrbitControls } from "three/addons/controls/OrbitControls.js";
   import { MISSION } from "@/lib/mission";
 
   // -----------------------------------------------------------------------
-  // Get the SVG path element and compute points along it for positioning
+  // Detection
   // -----------------------------------------------------------------------
 
-  const pathEl = document.getElementById("trajectory-path") as unknown as SVGPathElement;
-  const completedEl = document.getElementById("trajectory-completed") as unknown as SVGPathElement;
-  const orionDot = document.getElementById("orion-dot") as SVGCircleElement;
-  const orionHalo = document.getElementById("orion-halo") as SVGCircleElement;
-  const orionPulse = document.getElementById("orion-pulse") as SVGCircleElement;
-  const orionLabel = document.getElementById("orion-label") as SVGTextElement;
-  const distLine = document.getElementById("dist-line") as SVGLineElement;
-  const distText = document.getElementById("dist-text") as SVGTextElement;
-  const starsG = document.getElementById("stars") as SVGGElement;
+  function isWebGLAvailable(): boolean {
+    try {
+      const c = document.createElement("canvas");
+      return !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl")));
+    } catch { return false; }
+  }
 
-  const EARTH_X = 140;
-  const EARTH_Y = 260;
+  const isMobile = window.innerWidth < 768;
+  const fallback = document.getElementById("trajectory-fallback")!;
+  const canvasWrap = document.getElementById("trajectory-canvas")!;
 
-  // Generate stars
-  for (let i = 0; i < 60; i++) {
-    const star = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    star.setAttribute("cx", String(Math.random() * 1000));
-    star.setAttribute("cy", String(Math.random() * 520));
-    star.setAttribute("r", String(0.3 + Math.random() * 1.1));
-    starsG.appendChild(star);
+  if (isMobile || !isWebGLAvailable()) {
+    fallback.classList.remove("hidden");
+    canvasWrap.classList.add("hidden");
+  } else {
+    fallback.classList.add("hidden");
+    canvasWrap.classList.remove("hidden");
+    initScene();
   }
 
   // -----------------------------------------------------------------------
-  // Mission progress: MET → fraction [0, 1] along the path
+  // Three.js Scene
   // -----------------------------------------------------------------------
 
-  const launchMs = MISSION.launchTime.getTime();
-  const splashMs = MISSION.splashdownTime.getTime();
-  const totalMs = splashMs - launchMs;
+  function initScene() {
+    const canvas = document.getElementById("trajectory-gl") as HTMLCanvasElement;
+    const loadingEl = document.getElementById("trajectory-loading")!;
+    const distReadout = document.getElementById("dist-readout")!;
+    const dragHint = document.getElementById("drag-hint")!;
 
-  // The trajectory starts ~3.4h after launch (ICPS separation) and the
-  // first visible path point is after TLI (~25h). We map MET to path
-  // progress with a slight non-linearity: the outbound coast is slower
-  // visually than the fast flyby.
+    // Renderer
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
 
-  function getProgress(): number {
-    const now = Date.now();
-    if (now <= launchMs) return 0;
-    if (now >= splashMs) return 1;
-    return (now - launchMs) / totalMs;
-  }
+    // Scene
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x04060b);
 
-  // -----------------------------------------------------------------------
-  // Approximate distance from Earth (km) based on progress.
-  // Uses known mission milestones for interpolation.
-  // -----------------------------------------------------------------------
+    // Camera
+    const aspect = canvas.clientWidth / canvas.clientHeight;
+    const camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 2000);
+    camera.position.set(0, 100, 180);
 
-  // progress → distance from Earth in km (approximate)
-  const distMilestones: [number, number][] = [
-    [0.00, 185],         // LEO
-    [0.05, 2_200],       // Perigee raise
-    [0.10, 70_000],      // After apogee raise
-    [0.15, 50_000],      // Before TLI
-    [0.20, 100_000],     // Early outbound
-    [0.30, 200_000],     // Mid outbound
-    [0.40, 300_000],     // Late outbound
-    [0.50, 380_000],     // Approaching Moon
-    [0.55, 413_146],     // Max Earth distance / closest Moon
-    [0.60, 390_000],     // Departing Moon
-    [0.70, 300_000],     // Mid return
-    [0.80, 200_000],     // Late return
-    [0.90, 100_000],     // Approach Earth
-    [0.95, 30_000],      // Reentry corridor
-    [1.00, 0],           // Splashdown
-  ];
+    // Controls
+    const controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 40;
+    controls.maxDistance = 400;
+    controls.enablePan = false;
+    controls.target.set(50, 0, 0);
 
-  function getDistanceKm(progress: number): number {
-    for (let i = 0; i < distMilestones.length - 1; i++) {
-      const [p0, d0] = distMilestones[i];
-      const [p1, d1] = distMilestones[i + 1];
-      if (progress >= p0 && progress <= p1) {
-        const t = (progress - p0) / (p1 - p0);
-        return d0 + t * (d1 - d0);
+    // Hide drag hint after first interaction
+    controls.addEventListener("start", () => {
+      dragHint.style.opacity = "0";
+    });
+
+    // Lighting
+    scene.add(new THREE.AmbientLight(0x1a2236, 0.5));
+    const sun = new THREE.DirectionalLight(0xfff5e6, 1.8);
+    sun.position.set(200, 60, 100);
+    scene.add(sun);
+    const fill = new THREE.DirectionalLight(0x3b82f6, 0.12);
+    fill.position.set(-100, -30, -50);
+    scene.add(fill);
+
+    // -------------------------------------------------------------------
+    // Stars
+    // -------------------------------------------------------------------
+    const starCount = 1500;
+    const starPos = new Float32Array(starCount * 3);
+    for (let i = 0; i < starCount; i++) {
+      const r = 350 + Math.random() * 500;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      starPos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      starPos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      starPos[i * 3 + 2] = r * Math.cos(phi);
+    }
+    const starGeo = new THREE.BufferGeometry();
+    starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
+    scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({
+      color: 0xffffff, size: 0.5, sizeAttenuation: true, transparent: true, opacity: 0.7,
+    })));
+
+    // -------------------------------------------------------------------
+    // Earth (at origin)
+    // -------------------------------------------------------------------
+    const earthGeo = new THREE.IcosahedronGeometry(10, 3);
+    const earthMat = new THREE.MeshStandardMaterial({
+      color: 0x1e4a7a, roughness: 0.7, metalness: 0.1, flatShading: true,
+    });
+    const earth = new THREE.Mesh(earthGeo, earthMat);
+    scene.add(earth);
+    earth.add(makeGlow(0x3b82f6, 35, 0.1));
+
+    // -------------------------------------------------------------------
+    // Moon
+    // -------------------------------------------------------------------
+    const MOON_DIST = 120; // scene units from Earth
+    const moonGeo = new THREE.IcosahedronGeometry(3, 2);
+    const moonMat = new THREE.MeshStandardMaterial({
+      color: 0x8a8a8f, roughness: 0.9, metalness: 0.05, flatShading: true,
+    });
+    const moon = new THREE.Mesh(moonGeo, moonMat);
+    moon.position.set(MOON_DIST, 0, 0);
+    scene.add(moon);
+    moon.add(makeGlow(0x94a3b8, 12, 0.07));
+
+    // -------------------------------------------------------------------
+    // Trajectory curve
+    //
+    // Map the SVG bezier shape into 3D:
+    // SVG: Earth at (140, 260), Moon at (830, 275), viewBox 1000x520
+    // 3D:  Earth at (0,0,0), Moon at (MOON_DIST, 0, 0)
+    //
+    // Scale: (830-140) SVG units = MOON_DIST scene units
+    // Add Z variation for the out-of-plane component (~10% of scale)
+    // -------------------------------------------------------------------
+
+    const SVG_EX = 140, SVG_EY = 260;
+    const SVG_MX = 830;
+    const svgScale = MOON_DIST / (SVG_MX - SVG_EX);
+
+    // Convert SVG (x, y) → scene (x, y_scene, z) where:
+    //   x_scene = (svgX - SVG_EX) * scale
+    //   y_scene = -(svgY - SVG_EY) * scale  (flip Y)
+    //   z = slight out-of-plane variation
+    function svgTo3D(sx: number, sy: number, z: number = 0): THREE.Vector3 {
+      return new THREE.Vector3(
+        (sx - SVG_EX) * svgScale,
+        -(sy - SVG_EY) * svgScale,
+        z,
+      );
+    }
+
+    // SVG bezier: M 140 260 C 250 160,450 100,650 130 C 750 145,820 180,850 230
+    //             C 875 270,875 290,850 320 C 820 370,750 400,650 390
+    //             C 450 370,250 340,140 260
+    //
+    // We sample the cubic beziers as control points, adding Z for depth.
+
+    const curvePoints = [
+      svgTo3D(140, 260, 0),        // Earth departure
+      svgTo3D(195, 210, 5),
+      svgTo3D(250, 160, 10),       // CP
+      svgTo3D(350, 120, 14),
+      svgTo3D(450, 100, 16),       // CP
+      svgTo3D(550, 110, 14),
+      svgTo3D(650, 130, 10),       // CP
+      svgTo3D(700, 138, 6),
+      svgTo3D(750, 145, 2),        // CP
+      svgTo3D(785, 162, -2),
+      svgTo3D(820, 180, -5),       // CP - approaching Moon
+      svgTo3D(840, 210, -8),
+      svgTo3D(850, 230, -10),      // near Moon
+      svgTo3D(865, 255, -12),
+      svgTo3D(875, 270, -13),      // behind Moon (closest approach)
+      svgTo3D(875, 290, -12),
+      svgTo3D(860, 310, -10),      // exiting flyby
+      svgTo3D(850, 320, -8),
+      svgTo3D(835, 345, -5),
+      svgTo3D(820, 370, -2),       // CP
+      svgTo3D(785, 385, 0),
+      svgTo3D(750, 400, 2),        // CP
+      svgTo3D(700, 395, 4),
+      svgTo3D(650, 390, 6),        // CP
+      svgTo3D(550, 382, 8),
+      svgTo3D(450, 370, 8),        // CP
+      svgTo3D(350, 355, 6),
+      svgTo3D(250, 340, 4),        // CP
+      svgTo3D(195, 300, 2),
+      svgTo3D(140, 260, 0),        // back to Earth
+    ];
+
+    const trajCurve = new THREE.CatmullRomCurve3(curvePoints, false, "catmullrom", 0.3);
+    const trajPoints = trajCurve.getPoints(400);
+
+    // Trajectory line
+    const lineGeo = new THREE.BufferGeometry().setFromPoints(trajPoints);
+    const lineMat = new THREE.LineBasicMaterial({
+      color: 0x06b6d4, transparent: true, opacity: 0.35,
+    });
+    scene.add(new THREE.Line(lineGeo, lineMat));
+
+    // Glow line
+    scene.add(new THREE.Line(
+      lineGeo.clone(),
+      new THREE.LineBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.08, linewidth: 1 }),
+    ));
+
+    // Completed portion line (updated each frame)
+    const completedGeo = new THREE.BufferGeometry();
+    const completedLine = new THREE.Line(completedGeo, new THREE.LineBasicMaterial({
+      color: 0x06b6d4, transparent: true, opacity: 0.7,
+    }));
+    scene.add(completedLine);
+
+    // -------------------------------------------------------------------
+    // Orion
+    // -------------------------------------------------------------------
+    const orionGeo = new THREE.SphereGeometry(1.2, 16, 16);
+    const orionMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+    const orion = new THREE.Mesh(orionGeo, orionMat);
+    scene.add(orion);
+    orion.add(makeGlow(0xf59e0b, 8, 0.35));
+    const orionPulse = makeGlow(0xf59e0b, 14, 0.12);
+    orion.add(orionPulse);
+
+    // -------------------------------------------------------------------
+    // Distance dashed line Earth → Orion
+    // -------------------------------------------------------------------
+    const dashGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
+    const dashMat = new THREE.LineDashedMaterial({
+      color: 0x3b82f6, dashSize: 2, gapSize: 2, transparent: true, opacity: 0.15,
+    });
+    const dashLine = new THREE.Line(dashGeo, dashMat);
+    dashLine.computeLineDistances();
+    scene.add(dashLine);
+
+    // -------------------------------------------------------------------
+    // Mission progress
+    // -------------------------------------------------------------------
+    const launchMs = MISSION.launchTime.getTime();
+    const splashMs = MISSION.splashdownTime.getTime();
+    const totalMs = splashMs - launchMs;
+
+    // Distance milestones: progress → km from Earth
+    const distMilestones: [number, number][] = [
+      [0, 185], [0.05, 2200], [0.10, 70000], [0.15, 50000],
+      [0.20, 100000], [0.30, 200000], [0.40, 300000], [0.50, 380000],
+      [0.55, 413146], [0.60, 390000], [0.70, 300000], [0.80, 200000],
+      [0.90, 100000], [0.95, 30000], [1, 0],
+    ];
+
+    function getDistKm(p: number): number {
+      for (let i = 0; i < distMilestones.length - 1; i++) {
+        const [p0, d0] = distMilestones[i];
+        const [p1, d1] = distMilestones[i + 1];
+        if (p >= p0 && p <= p1) return d0 + ((p - p0) / (p1 - p0)) * (d1 - d0);
       }
+      return 0;
     }
-    return 0;
-  }
 
-  function formatDist(km: number): string {
-    if (km >= 1_000) return `${(km / 1_000).toFixed(1)}K km from Earth`;
-    return `${km.toFixed(0)} km from Earth`;
-  }
-
-  // -----------------------------------------------------------------------
-  // Build the completed path segment (from start to current progress)
-  // -----------------------------------------------------------------------
-
-  function getSubPath(progress: number): string {
-    const totalLen = pathEl.getTotalLength();
-    const len = totalLen * progress;
-
-    // Sample points along the path up to current progress
-    const steps = Math.max(2, Math.ceil(progress * 100));
-    const points: string[] = [];
-    for (let i = 0; i <= steps; i++) {
-      const d = (i / steps) * len;
-      const pt = pathEl.getPointAtLength(d);
-      points.push(i === 0 ? `M ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}` : `L ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`);
+    function getProgress(): number {
+      const now = Date.now();
+      if (now <= launchMs) return 0;
+      if (now >= splashMs) return 1;
+      return (now - launchMs) / totalMs;
     }
-    return points.join(" ");
+
+    // -------------------------------------------------------------------
+    // Animation
+    // -------------------------------------------------------------------
+    const clock = new THREE.Clock();
+    const frameInterval = 1 / 30;
+    let elapsed = 0;
+    let animId: number;
+
+    function animate() {
+      animId = requestAnimationFrame(animate);
+      elapsed += clock.getDelta();
+      if (elapsed < frameInterval) return;
+      elapsed %= frameInterval;
+
+      // Earth rotation
+      earth.rotation.y += 0.002;
+
+      // Orion position
+      const progress = getProgress();
+      const t = Math.max(0, Math.min(0.999, progress));
+      const pos = trajCurve.getPointAt(t);
+      orion.position.copy(pos);
+
+      // Pulse
+      const pulse = 0.3 + 0.1 * Math.sin(Date.now() * 0.003);
+      (orionPulse.material as THREE.SpriteMaterial).opacity = pulse * 0.4;
+
+      // Completed path
+      const completedIdx = Math.ceil(t * 400);
+      if (completedIdx > 1) {
+        const pts = trajPoints.slice(0, completedIdx + 1);
+        completedLine.geometry.dispose();
+        completedLine.geometry = new THREE.BufferGeometry().setFromPoints(pts);
+      }
+
+      // Dashed line Earth → Orion
+      const dashPositions = dashLine.geometry.attributes.position;
+      if (dashPositions) {
+        dashPositions.setXYZ(0, 0, 0, 0);
+        dashPositions.setXYZ(1, pos.x, pos.y, pos.z);
+        dashPositions.needsUpdate = true;
+        dashLine.computeLineDistances();
+      }
+
+      // Distance readout
+      const km = getDistKm(progress);
+      if (km >= 1000) {
+        distReadout.textContent = `${(km / 1000).toFixed(1)}K km from Earth`;
+      } else {
+        distReadout.textContent = `${km.toFixed(0)} km from Earth`;
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // Hide loading
+    requestAnimationFrame(() => {
+      loadingEl.style.opacity = "0";
+      setTimeout(() => loadingEl.remove(), 500);
+    });
+
+    // Resize
+    const ro = new ResizeObserver(() => {
+      const w = canvasWrap.clientWidth;
+      const h = canvasWrap.clientHeight;
+      if (w === 0 || h === 0) return;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h, false);
+    });
+    ro.observe(canvasWrap);
+
+    // Switch to fallback on resize to mobile
+    window.addEventListener("resize", () => {
+      if (window.innerWidth < 768) {
+        fallback.classList.remove("hidden");
+        canvasWrap.classList.add("hidden");
+        cleanup();
+      }
+    });
+
+    function cleanup() {
+      cancelAnimationFrame(animId);
+      ro.disconnect();
+      controls.dispose();
+      renderer.dispose();
+      scene.traverse((obj) => {
+        if (obj instanceof THREE.Mesh || obj instanceof THREE.Line || obj instanceof THREE.Points) {
+          obj.geometry.dispose();
+          const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+          mats.forEach((m) => m.dispose());
+        }
+        if (obj instanceof THREE.Sprite) {
+          obj.material.map?.dispose();
+          obj.material.dispose();
+        }
+      });
+    }
+
+    document.addEventListener("astro:before-swap", cleanup, { once: true });
   }
 
   // -----------------------------------------------------------------------
-  // Update loop
+  // Glow sprite helper
   // -----------------------------------------------------------------------
-
-  function update() {
-    const progress = getProgress();
-    const totalLen = pathEl.getTotalLength();
-    const pt = pathEl.getPointAtLength(totalLen * Math.min(progress, 0.999));
-
-    // Orion position
-    orionDot.setAttribute("cx", String(pt.x));
-    orionDot.setAttribute("cy", String(pt.y));
-    orionHalo.setAttribute("cx", String(pt.x));
-    orionHalo.setAttribute("cy", String(pt.y));
-    orionPulse.setAttribute("cx", String(pt.x));
-    orionPulse.setAttribute("cy", String(pt.y));
-    orionLabel.setAttribute("x", String(pt.x));
-    orionLabel.setAttribute("y", String(pt.y - 15));
-
-    // Distance line
-    distLine.setAttribute("x2", String(pt.x));
-    distLine.setAttribute("y2", String(pt.y));
-
-    // Completed path
-    completedEl.setAttribute("d", getSubPath(progress));
-
-    // Distance readout
-    const km = getDistanceKm(progress);
-    distText.textContent = formatDist(km);
+  function makeGlow(color: number, size: number, opacity: number): THREE.Sprite {
+    const c = document.createElement("canvas");
+    c.width = 128; c.height = 128;
+    const ctx = c.getContext("2d")!;
+    const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    const col = new THREE.Color(color);
+    const rgb = `${Math.floor(col.r * 255)},${Math.floor(col.g * 255)},${Math.floor(col.b * 255)}`;
+    grad.addColorStop(0, `rgba(${rgb},1)`);
+    grad.addColorStop(0.4, `rgba(${rgb},0.3)`);
+    grad.addColorStop(1, `rgba(${rgb},0)`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 128, 128);
+    const tex = new THREE.CanvasTexture(c);
+    const mat = new THREE.SpriteMaterial({
+      map: tex, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false,
+    });
+    const sprite = new THREE.Sprite(mat);
+    sprite.scale.set(size, size, 1);
+    return sprite;
   }
-
-  update();
-  setInterval(update, 1000);
 </script>

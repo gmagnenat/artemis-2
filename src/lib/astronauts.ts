@@ -21,7 +21,7 @@ export const CREW: Astronaut[] = [
     name: "Reid Wiseman",
     role: "Commander",
     agency: "NASA",
-    photo: "/crew/wiseman.webp",
+    photo: "/crew/wiseman.jpg",
     nationality: "USA",
     stats: {
       missions: 2,
@@ -36,7 +36,7 @@ export const CREW: Astronaut[] = [
     name: "Victor Glover",
     role: "Pilot",
     agency: "NASA",
-    photo: "/crew/glover.webp",
+    photo: "/crew/glover.jpg",
     nationality: "USA",
     stats: {
       missions: 2,
@@ -51,7 +51,7 @@ export const CREW: Astronaut[] = [
     name: "Christina Koch",
     role: "Mission Specialist",
     agency: "NASA",
-    photo: "/crew/koch.webp",
+    photo: "/crew/koch.jpg",
     nationality: "USA",
     stats: {
       missions: 2,
@@ -66,7 +66,7 @@ export const CREW: Astronaut[] = [
     name: "Jeremy Hansen",
     role: "Mission Specialist",
     agency: "CSA",
-    photo: "/crew/hansen.webp",
+    photo: "/crew/hansen.jpg",
     nationality: "Canada",
     stats: {
       missions: 1,

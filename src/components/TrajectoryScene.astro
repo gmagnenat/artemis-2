@@ -1,63 +1,29 @@
 ---
 /**
  * TrajectoryScene — Mission Control display.
- * NASA live video on top, trajectory + telemetry below.
+ * NASA trajectory visualization image + telemetry overlay.
  */
 ---
 
-<div class="space-y-4">
-  <!-- Trajectory + Telemetry panel -->
+<div class="space-y-6">
+  <!-- Trajectory visualization (NASA SVS rendering) -->
+  <div class="relative rounded-xl overflow-hidden">
+    <img
+      src="/trajectory-nasa.jpg"
+      alt="Artemis II trajectory showing Orion's path from Earth orbit around the Moon and back"
+      class="w-full h-auto"
+      loading="lazy"
+    />
+    <!-- Subtle vignette overlay to blend with dark theme -->
+    <div class="absolute inset-0 bg-gradient-to-t from-space-900/40 via-transparent to-space-900/20 pointer-events-none"></div>
+    <!-- Credit -->
+    <div class="absolute bottom-2 right-3">
+      <span class="mono text-[9px] text-lunar-300/40">NASA Scientific Visualization Studio</span>
+    </div>
+  </div>
+
+  <!-- Telemetry panel -->
   <div class="glass rounded-xl p-5 sm:p-6">
-    <!-- Trajectory diagram -->
-    <svg id="mc-trajectory" viewBox="0 0 700 180" class="w-full h-auto mb-5" role="img" aria-label="Artemis II trajectory diagram showing Orion's path from Earth around the Moon and back">
-      <title>Artemis II Trajectory</title>
-      <desc>A diagram showing the Orion spacecraft's trajectory from Earth to the Moon and back, with the current position highlighted.</desc>
-      <!-- Full trajectory path -->
-      <path
-        d="M 60 90 C 160 30, 350 10, 500 40
-           C 570 55, 610 75, 630 90
-           C 645 102, 645 108, 630 118
-           C 610 133, 570 148, 500 142
-           C 350 128, 160 130, 60 90"
-        fill="none"
-        stroke="#06b6d4"
-        stroke-width="1"
-        opacity="0.25"
-      />
-      <!-- Completed portion -->
-      <path
-        id="mc-completed-path"
-        d=""
-        fill="none"
-        stroke="#06b6d4"
-        stroke-width="2.5"
-        opacity="0.6"
-        stroke-linecap="round"
-      />
-
-      <!-- Earth -->
-      <circle cx="60" cy="90" r="40" fill="#3b82f6" opacity="0.04" />
-      <circle cx="60" cy="90" r="11" fill="#0f2847" stroke="#3b82f6" stroke-width="1.2" />
-      <text x="60" y="113" text-anchor="middle" fill="#3b82f6" font-size="9" font-family="'JetBrains Mono', monospace" opacity="0.5">EARTH</text>
-
-      <!-- Moon -->
-      <circle cx="630" cy="103" r="25" fill="#94a3b8" opacity="0.03" />
-      <circle cx="630" cy="103" r="5" fill="#3a3a40" stroke="#94a3b8" stroke-width="0.8" />
-      <text x="630" y="120" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="'JetBrains Mono', monospace" opacity="0.5">MOON</text>
-
-      <!-- Orion -->
-      <circle id="mc-orion-glow" cx="60" cy="90" r="10" fill="#f59e0b" opacity="0.12">
-        <animate attributeName="r" values="10;18;10" dur="2.5s" repeatCount="indefinite" />
-        <animate attributeName="opacity" values="0.12;0;0.12" dur="2.5s" repeatCount="indefinite" />
-      </circle>
-      <circle id="mc-orion" cx="60" cy="90" r="3.5" fill="#f59e0b" />
-      <text id="mc-orion-label" x="60" y="78" text-anchor="middle" fill="#f59e0b" font-size="8" font-family="'JetBrains Mono', monospace" opacity="0.7">ORION</text>
-
-      <!-- Distance line -->
-      <line id="mc-dist-line" x1="60" y1="90" x2="60" y2="90" stroke="#3b82f6" stroke-width="0.4" stroke-dasharray="3 3" opacity="0.15" />
-    </svg>
-
-    <!-- Telemetry grid -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
       <div class="mc-tel">
         <span class="mc-label">Mission Elapsed Time</span>
@@ -110,13 +76,6 @@
   const phaseEl = document.getElementById("mc-phase")!;
   const earthDistEl = document.getElementById("mc-earth-dist")!;
   const moonDistEl = document.getElementById("mc-moon-dist")!;
-  const dayEl = document.getElementById("mc-day");
-  const orionDot = document.getElementById("mc-orion")!;
-  const orionGlow = document.getElementById("mc-orion-glow")!;
-  const orionLabel = document.getElementById("mc-orion-label")!;
-  const completedPath = document.getElementById("mc-completed-path")!;
-  const distLine = document.getElementById("mc-dist-line")!;
-  const trajPath = document.querySelector("#mc-trajectory path:first-of-type") as SVGPathElement;
 
   let trajectoryData: TrajectoryData | null = null;
   loadTrajectory().then((d) => { trajectoryData = d; });
@@ -137,36 +96,20 @@
     return `${km.toFixed(0)} km`;
   }
 
-  function getSubPath(progress: number): string {
-    if (!trajPath) return "";
-    const totalLen = trajPath.getTotalLength();
-    const len = totalLen * progress;
-    const steps = Math.max(2, Math.ceil(progress * 80));
-    const parts: string[] = [];
-    for (let i = 0; i <= steps; i++) {
-      const d = (i / steps) * len;
-      const pt = trajPath.getPointAtLength(d);
-      parts.push(i === 0 ? `M ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}` : `L ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`);
-    }
-    return parts.join(" ");
-  }
-
   function update() {
     const met = getMissionElapsedTime();
     const phase = getMissionPhase(met);
-    const progress = getProgress();
-    const day = Math.floor(met / 86400) + 1;
 
     metEl.textContent = formatMET(met);
     phaseEl.textContent = phase.label;
     phaseEl.style.color = phase.color;
-    if (dayEl) dayEl.textContent = String(day);
 
     if (trajectoryData) {
       const dist = getDistancesAt(trajectoryData.spacecraft, trajectoryData.moon, new Date());
       earthDistEl.textContent = formatDist(dist.earth);
       moonDistEl.textContent = formatDist(dist.moon);
     } else {
+      const progress = getProgress();
       const peak = 0.55;
       let earthKm: number;
       if (progress < peak) {
@@ -176,20 +119,6 @@
       }
       earthDistEl.textContent = formatDist(Math.max(0, earthKm));
       moonDistEl.textContent = formatDist(Math.max(0, 384_400 - earthKm));
-    }
-
-    if (trajPath) {
-      const totalLen = trajPath.getTotalLength();
-      const pt = trajPath.getPointAtLength(totalLen * Math.min(progress, 0.999));
-      orionDot.setAttribute("cx", String(pt.x));
-      orionDot.setAttribute("cy", String(pt.y));
-      orionGlow.setAttribute("cx", String(pt.x));
-      orionGlow.setAttribute("cy", String(pt.y));
-      orionLabel.setAttribute("x", String(pt.x));
-      orionLabel.setAttribute("y", String(pt.y - 12));
-      distLine.setAttribute("x2", String(pt.x));
-      distLine.setAttribute("y2", String(pt.y));
-      completedPath.setAttribute("d", getSubPath(progress));
     }
   }
 

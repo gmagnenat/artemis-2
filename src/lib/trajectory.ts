@@ -36,11 +36,8 @@ export interface TrajectoryData {
 // Horizons API helpers
 // ---------------------------------------------------------------------------
 
-// Use Vite proxy in dev to avoid CORS, direct URL in production (via Vercel Edge Function)
-const HORIZONS_API =
-  typeof window !== "undefined" && window.location.hostname === "localhost"
-    ? "/api/horizons"
-    : "https://ssd.jpl.nasa.gov/api/horizons.api";
+// Proxied through Vite in dev, Vercel serverless function in production
+const HORIZONS_API = "/api/horizons";
 
 /** NAIF IDs */
 const SPACECRAFT_ID = "-1024"; // Artemis II / Orion

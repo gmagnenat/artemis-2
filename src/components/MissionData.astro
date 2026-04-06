@@ -1,0 +1,117 @@
+---
+/**
+ * MissionData — Bold mission stats: progress %, distance, comparisons.
+ * One unified full-width section with big numbers.
+ */
+---
+
+<div id="mission-data-section" class="glass px-6 sm:px-10 py-10 sm:py-14">
+  <!-- Top row: big progress + big distance -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-10 sm:gap-16 mb-10">
+    <!-- Progress -->
+    <div>
+      <p class="mono text-[10px] tracking-[0.2em] text-lunar-400 uppercase mb-2">Mission Progress</p>
+      <div class="flex items-baseline gap-3">
+        <span id="md-pct" class="font-display font-black text-[clamp(3.5rem,8vw,6rem)] leading-none text-accent-cyan">0</span>
+        <span class="font-display font-black text-[clamp(1.5rem,3vw,2.5rem)] text-accent-cyan/50">%</span>
+      </div>
+      <!-- Progress bar -->
+      <div class="mt-4 h-1.5 w-full bg-space-600 rounded-full overflow-hidden">
+        <div id="md-bar" class="h-full bg-accent-cyan rounded-full transition-all duration-1000" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <!-- Distance -->
+    <div>
+      <p class="mono text-[10px] tracking-[0.2em] text-lunar-400 uppercase mb-2">Distance from Earth</p>
+      <div class="flex items-baseline gap-2">
+        <span id="md-dist" class="font-display font-black text-[clamp(3.5rem,8vw,6rem)] leading-none text-lunar-100">---</span>
+        <span class="font-heading font-extrabold text-[clamp(1rem,2vw,1.5rem)] text-lunar-400 uppercase">km</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom row: three comparison stats -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-8 border-t border-glass-border">
+    <div>
+      <p class="mono text-[10px] tracking-[0.2em] text-lunar-400 uppercase mb-1">Earth Diameters</p>
+      <p class="flex items-baseline gap-1">
+        <span id="md-earths" class="font-display font-bold text-3xl text-lunar-100">--</span>
+        <span class="text-sm text-lunar-400">× Earth</span>
+      </p>
+    </div>
+    <div>
+      <p class="mono text-[10px] tracking-[0.2em] text-lunar-400 uppercase mb-1">Light Travel Time</p>
+      <p class="flex items-baseline gap-1">
+        <span id="md-light" class="font-display font-bold text-3xl text-accent-gold">--</span>
+        <span class="text-sm text-lunar-400">seconds</span>
+      </p>
+    </div>
+    <div>
+      <p class="mono text-[10px] tracking-[0.2em] text-lunar-400 uppercase mb-1">Driving at 130 km/h</p>
+      <p class="flex items-baseline gap-1">
+        <span id="md-drive" class="font-display font-bold text-3xl text-accent-cyan">--</span>
+        <span id="md-drive-unit" class="text-sm text-lunar-400">days</span>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { MISSION, getMissionElapsedTime } from "../lib/mission";
+  import { loadTrajectory, getDistancesAt, type TrajectoryData } from "../lib/trajectory";
+
+  const pctEl = document.getElementById("md-pct")!;
+  const barEl = document.getElementById("md-bar") as HTMLDivElement;
+  const distEl = document.getElementById("md-dist")!;
+  const earthsEl = document.getElementById("md-earths")!;
+  const lightEl = document.getElementById("md-light")!;
+  const driveEl = document.getElementById("md-drive")!;
+  const driveUnitEl = document.getElementById("md-drive-unit")!;
+
+  const totalMs = MISSION.splashdownTime.getTime() - MISSION.launchTime.getTime();
+  const EARTH_DIAM = 12_742;
+  const C = 299_792;
+  const SPEED = 130;
+
+  let data: TrajectoryData | null = null;
+  loadTrajectory().then((d) => { data = d; update(); });
+
+  function getEarthDist(): number {
+    if (data) return getDistancesAt(data.spacecraft, data.moon, new Date()).earth;
+    const met = getMissionElapsedTime();
+    const progress = Math.min(1, met / (totalMs / 1000));
+    const peak = 0.55;
+    if (progress < peak) return (progress / peak) * MISSION.maxEarthDistance;
+    return MISSION.maxEarthDistance * (1 - (progress - peak) / (1 - peak));
+  }
+
+  function update() {
+    // Progress
+    const met = getMissionElapsedTime();
+    const pct = Math.min(100, Math.max(0, (met / (totalMs / 1000)) * 100));
+    pctEl.textContent = Math.round(pct).toString();
+    barEl.style.width = `${pct}%`;
+
+    // Distance
+    const km = Math.max(0, getEarthDist());
+    distEl.textContent = Math.round(km).toLocaleString("en-US");
+
+    // Comparisons
+    earthsEl.textContent = (km / EARTH_DIAM).toFixed(1);
+    lightEl.textContent = (km / C).toFixed(1);
+
+    const hours = km / SPEED;
+    const days = hours / 24;
+    if (days >= 1) {
+      driveEl.textContent = Math.round(days).toString();
+      driveUnitEl.textContent = "days";
+    } else {
+      driveEl.textContent = hours.toFixed(1);
+      driveUnitEl.textContent = "hours";
+    }
+  }
+
+  update();
+  setInterval(update, 2000);
+</script>

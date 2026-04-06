@@ -1,0 +1,100 @@
+---
+/**
+ * LunarCountdown — Full-width cinematic banner showing countdown to
+ * closest lunar approach, or elapsed time since it happened.
+ * Updates every second via client-side script.
+ */
+import { MISSION } from "../lib/mission";
+---
+
+<section id="lunar-countdown" class="relative w-full px-6 py-24 sm:py-32 overflow-hidden">
+  <!-- Background glow -->
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-accent-gold/[0.03] blur-[120px] pointer-events-none"></div>
+
+  <div class="relative z-10 max-w-4xl mx-auto">
+    <div class="glass px-8 sm:px-12 py-12 sm:py-16 text-center">
+      <!-- Eyebrow label -->
+      <p id="countdown-eyebrow" class="mono text-[10px] tracking-[0.4em] text-lunar-400 uppercase mb-6">
+        Lunar Closest Approach
+      </p>
+
+      <!-- State label: "CLOSEST APPROACH IN" or "CLOSEST APPROACH WAS X HOURS AGO" -->
+      <p id="countdown-label" class="font-heading font-extrabold text-[11px] sm:text-xs tracking-[0.35em] text-accent-gold uppercase mb-4">
+        Closest Approach In
+      </p>
+
+      <!-- Big countdown numbers -->
+      <div id="countdown-digits" class="font-display font-black text-[clamp(3rem,10vw,7rem)] leading-none tracking-tight text-accent-gold">
+        --:--:--
+      </div>
+
+      <!-- Distance (shown after closest approach) -->
+      <p id="countdown-distance" class="mono text-lg sm:text-xl text-lunar-100 mt-6 hidden">
+        8,282.5 km from the lunar surface
+      </p>
+
+      <!-- Subtitle -->
+      <p id="countdown-subtitle" class="text-lunar-300 text-sm sm:text-base mt-6 max-w-lg mx-auto leading-relaxed">
+        The farthest humans have traveled from Earth since Apollo 17
+      </p>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { MISSION } from "../lib/mission";
+
+  const closestMs = MISSION.closestApproach.getTime();
+
+  const eyebrow = document.getElementById("countdown-eyebrow")!;
+  const label = document.getElementById("countdown-label")!;
+  const digits = document.getElementById("countdown-digits")!;
+  const distanceEl = document.getElementById("countdown-distance")!;
+  const subtitle = document.getElementById("countdown-subtitle")!;
+
+  function pad(n: number): string {
+    return String(Math.floor(n)).padStart(2, "0");
+  }
+
+  function update() {
+    const now = Date.now();
+    const diff = closestMs - now;
+
+    if (diff > 0) {
+      // Before closest approach — show countdown
+      const totalSec = Math.floor(diff / 1000);
+      const hours = Math.floor(totalSec / 3600);
+      const minutes = Math.floor((totalSec % 3600) / 60);
+      const seconds = totalSec % 60;
+
+      label.textContent = "Closest Approach In";
+      digits.textContent = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+      distanceEl.classList.add("hidden");
+    } else {
+      // After closest approach — show elapsed time
+      const elapsedMs = Math.abs(diff);
+      const elapsedHours = elapsedMs / (1000 * 3600);
+
+      if (elapsedHours < 1) {
+        const elapsedMin = Math.floor(elapsedMs / (1000 * 60));
+        label.textContent = `Closest Approach Was ${elapsedMin} Minute${elapsedMin !== 1 ? "s" : ""} Ago`;
+      } else if (elapsedHours < 48) {
+        const h = Math.floor(elapsedHours);
+        label.textContent = `Closest Approach Was ${h} Hour${h !== 1 ? "s" : ""} Ago`;
+      } else {
+        const d = Math.floor(elapsedHours / 24);
+        label.textContent = `Closest Approach Was ${d} Day${d !== 1 ? "s" : ""} Ago`;
+      }
+
+      // Show the achieved distance instead of countdown
+      digits.textContent = "8,282.5 km";
+      digits.classList.remove("text-accent-gold");
+      digits.classList.add("text-lunar-100");
+
+      distanceEl.classList.remove("hidden");
+    }
+  }
+
+  update();
+  setInterval(update, 1000);
+</script>

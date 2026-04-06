@@ -3,7 +3,7 @@ import { MISSION } from "../lib/mission";
 ---
 
 <div id="mission-status" class="glass px-6 sm:px-8 py-6">
-  <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center sm:text-left">
+  <div class="grid grid-cols-2 sm:grid-cols-5 gap-6 text-center sm:text-left">
     <div class="status-item">
       <span class="label">Mission Elapsed Time</span>
       <span id="met-display" class="value mono">--:--:--:--</span>
@@ -19,6 +19,10 @@ import { MISSION } from "../lib/mission";
     <div class="status-item">
       <span class="label">Moon Distance</span>
       <span id="moon-distance" class="value mono">--- km</span>
+    </div>
+    <div class="status-item">
+      <span class="label">Velocity</span>
+      <span id="velocity-display" class="value mono text-accent-cyan">--- km/h</span>
     </div>
   </div>
 </div>
@@ -47,12 +51,13 @@ import { MISSION } from "../lib/mission";
 
 <script>
   import { getMissionElapsedTime, getMissionPhase, formatMET, isArchiveMode, MISSION } from "../lib/mission";
-  import { loadTrajectory, getDistancesAt, type TrajectoryData, type DistanceSample } from "../lib/trajectory";
+  import { loadTrajectory, getDistancesAt, interpolatePosition, magnitude, type TrajectoryData, type DistanceSample } from "../lib/trajectory";
 
   const metDisplay = document.getElementById("met-display")!;
   const phaseDisplay = document.getElementById("phase-display")!;
   const earthDistance = document.getElementById("earth-distance")!;
   const moonDistance = document.getElementById("moon-distance")!;
+  const velocityDisplay = document.getElementById("velocity-display")!;
 
   // Trajectory state — starts null, populated once the async fetch completes.
   let trajectoryData: TrajectoryData | null = null;
@@ -97,16 +102,42 @@ import { MISSION } from "../lib/mission";
     return `${km.toFixed(0)} km`;
   }
 
+  /**
+   * Compute spacecraft velocity in km/h by differencing two positions
+   * a small time delta apart (±30 seconds).
+   */
+  function getVelocity(): number {
+    if (!trajectoryData) return 0;
+    const now = Date.now();
+    const deltaMs = 30_000; // 30 seconds
+    const t1 = new Date(now - deltaMs);
+    const t2 = new Date(now + deltaMs);
+    const p1 = interpolatePosition(trajectoryData.spacecraft, t1);
+    const p2 = interpolatePosition(trajectoryData.spacecraft, t2);
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const dz = p2.z - p1.z;
+    const distKm = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    const dtHours = (2 * deltaMs) / 3_600_000; // total interval in hours
+    return distKm / dtHours;
+  }
+
+  function formatVelocity(kmh: number): string {
+    return kmh.toLocaleString("en-US", { maximumFractionDigits: 0 }) + " km/h";
+  }
+
   function update() {
     const met = getMissionElapsedTime();
     const phase = getMissionPhase(met);
     const distances = getDistances();
+    const velocity = getVelocity();
 
     metDisplay.textContent = formatMET(met);
     phaseDisplay.textContent = phase.label;
     phaseDisplay.style.color = phase.color;
     earthDistance.textContent = formatDist(distances.earth);
     moonDistance.textContent = formatDist(distances.moon);
+    velocityDisplay.textContent = velocity > 0 ? formatVelocity(velocity) : "--- km/h";
 
     if (isArchiveMode()) {
       metDisplay.textContent = `✓ ${formatMET(met)}`;

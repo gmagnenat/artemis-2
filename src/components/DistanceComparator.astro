@@ -1,0 +1,105 @@
+---
+/**
+ * Shows the current Earth-Orion distance with human-relatable comparisons.
+ * Updates every 3 seconds using trajectory data from JPL Horizons.
+ */
+---
+
+<div class="glass px-6 sm:px-8 py-6">
+  <div class="mb-1">
+    <span class="mono text-[10px] uppercase tracking-[0.15em] text-lunar-400">Earth — Orion Distance</span>
+  </div>
+  <div id="comparator-distance" class="mono text-[28px] sm:text-[36px] font-medium text-lunar-100 leading-tight tracking-tight">
+    --- km
+  </div>
+  <div class="mt-4 flex flex-col gap-2" id="comparator-items">
+    <div class="comparator-row">
+      <span class="mono text-[11px] text-lunar-400">=</span>
+      <span id="comparator-earths" class="mono text-sm text-lunar-200">--x the diameter of Earth</span>
+    </div>
+    <div class="comparator-row">
+      <span class="mono text-[11px] text-accent-cyan">~</span>
+      <span id="comparator-light" class="mono text-sm text-lunar-200">Light takes -.- seconds to reach Orion</span>
+    </div>
+    <div class="comparator-row">
+      <span class="mono text-[11px] text-accent-gold">~</span>
+      <span id="comparator-highway" class="mono text-sm text-lunar-200">At highway speed, it would take -- days</span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .comparator-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+</style>
+
+<script>
+  import { getMissionElapsedTime, MISSION } from "../lib/mission";
+  import { loadTrajectory, getDistancesAt, type TrajectoryData } from "../lib/trajectory";
+
+  const distanceEl = document.getElementById("comparator-distance")!;
+  const earthsEl = document.getElementById("comparator-earths")!;
+  const lightEl = document.getElementById("comparator-light")!;
+  const highwayEl = document.getElementById("comparator-highway")!;
+
+  const EARTH_DIAMETER = 12_742; // km
+  const SPEED_OF_LIGHT = 299_792; // km/s
+  const HIGHWAY_SPEED = 130; // km/h
+
+  let trajectoryData: TrajectoryData | null = null;
+
+  loadTrajectory().then((data) => {
+    trajectoryData = data;
+    update();
+  });
+
+  function getEarthDistance(): number {
+    if (trajectoryData) {
+      const distances = getDistancesAt(trajectoryData.spacecraft, trajectoryData.moon, new Date());
+      return distances.earth;
+    }
+    // Rough estimate before data loads
+    const met = getMissionElapsedTime();
+    const totalMission = (MISSION.splashdownTime.getTime() - MISSION.launchTime.getTime()) / 1000;
+    const progress = Math.min(1, met / totalMission);
+    const peakProgress = 0.55;
+    if (progress < peakProgress) {
+      return (progress / peakProgress) * MISSION.maxEarthDistance;
+    }
+    return MISSION.maxEarthDistance * (1 - (progress - peakProgress) / (1 - peakProgress));
+  }
+
+  function formatKm(km: number): string {
+    return Math.round(km).toLocaleString("en-US") + " km";
+  }
+
+  function update() {
+    const earthDist = Math.max(0, getEarthDistance());
+
+    // Raw distance
+    distanceEl.textContent = formatKm(earthDist);
+
+    // Earth diameters
+    const earths = earthDist / EARTH_DIAMETER;
+    earthsEl.textContent = `${earths.toFixed(1)}\u00d7 the diameter of Earth`;
+
+    // Light travel time
+    const lightSeconds = earthDist / SPEED_OF_LIGHT;
+    lightEl.textContent = `Light takes ${lightSeconds.toFixed(1)} seconds to reach Orion`;
+
+    // Highway time
+    const highwayHours = earthDist / HIGHWAY_SPEED;
+    const highwayDays = highwayHours / 24;
+    if (highwayDays >= 1) {
+      highwayEl.textContent = `At highway speed, it would take ${highwayDays.toFixed(0)} days`;
+    } else {
+      highwayEl.textContent = `At highway speed, it would take ${highwayHours.toFixed(1)} hours`;
+    }
+  }
+
+  update();
+  setInterval(update, 3000);
+</script>

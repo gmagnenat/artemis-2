@@ -4,29 +4,26 @@ import MissionStatus from "../components/MissionStatus.astro";
 import AstronautCard from "../components/AstronautCard.astro";
 import TrajectoryScene from "../components/TrajectoryScene.astro";
 import NewsFeed from "../components/NewsFeed.astro";
+import LunarCountdown from "../components/LunarCountdown.astro";
+import MissionData from "../components/MissionData.astro";
+import LunarPhotos from "../components/LunarPhotos.astro";
 import { CREW } from "../lib/astronauts";
 ---
 
 <Layout>
   <!-- ══ Hero ══ -->
   <header class="relative min-h-screen flex flex-col items-center justify-center px-6 py-24">
-    <!-- Background glow -->
     <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-accent-blue/[0.04] blur-[150px] pointer-events-none"></div>
 
     <div class="relative z-10 text-center max-w-5xl mx-auto">
-      <!-- Eyebrow -->
       <p class="mono text-[11px] tracking-[0.4em] text-lunar-400 uppercase mb-6">
         NASA · Artemis Program · 2026
       </p>
-
-      <!-- Title — Monument Extended, massive -->
       <h1 class="font-display font-black uppercase leading-[0.9] tracking-tight">
         <span class="text-[clamp(4rem,12vw,10rem)] text-gradient">Artemis</span>
         <br />
         <span class="text-[clamp(4rem,12vw,10rem)] text-accent-blue">II</span>
       </h1>
-
-      <!-- Subtitle -->
       <p class="text-lg sm:text-xl text-lunar-300 mt-8 max-w-2xl mx-auto leading-relaxed">
         Four astronauts. Ten days. Around the Moon and back.
       </p>
@@ -35,12 +32,10 @@ import { CREW } from "../lib/astronauts";
       </p>
     </div>
 
-    <!-- Mission Status -->
     <div class="relative z-10 w-full max-w-5xl mx-auto mt-16">
       <MissionStatus />
     </div>
 
-    <!-- Scroll indicator -->
     <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-lunar-400/50">
       <span class="mono text-[10px] uppercase tracking-[0.3em]">Scroll</span>
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" class="animate-bounce">
@@ -49,10 +44,23 @@ import { CREW } from "../lib/astronauts";
     </div>
   </header>
 
+  <!-- ══ Lunar Flyby Countdown ══ -->
+  <section class="px-6 py-16">
+    <div class="max-w-5xl mx-auto">
+      <LunarCountdown />
+    </div>
+  </section>
+
+  <!-- ══ Mission Data ══ -->
+  <section class="px-6 py-20">
+    <div class="max-w-6xl mx-auto">
+      <MissionData />
+    </div>
+  </section>
+
   <!-- ══ Crew ══ -->
   <section class="px-6 py-28">
     <div class="max-w-6xl mx-auto">
-      <!-- Section header -->
       <div class="mb-20">
         <p class="font-heading font-extrabold text-[11px] tracking-[0.35em] text-accent-gold uppercase mb-4">The Crew</p>
         <h2 class="font-display font-bold uppercase text-[clamp(2.5rem,6vw,5rem)] leading-[0.95] tracking-tight">
@@ -63,8 +71,6 @@ import { CREW } from "../lib/astronauts";
           Four humans chosen to fly farther from Earth than anyone in history. Tap a card to see their stats.
         </p>
       </div>
-
-      <!-- Cards grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {CREW.map((astronaut, i) => (
           <AstronautCard astronaut={astronaut} index={i} />
@@ -87,6 +93,7 @@ import { CREW } from "../lib/astronauts";
     </div>
   </section>
 
+
   <!-- ══ Mission Log ══ -->
   <section id="news" class="px-6 py-28">
     <div class="max-w-6xl mx-auto">
@@ -98,6 +105,13 @@ import { CREW } from "../lib/astronauts";
         </h2>
       </div>
       <NewsFeed />
+    </div>
+  </section>
+
+  <!-- ══ Lunar Photos ══ -->
+  <section class="px-6 py-28">
+    <div class="max-w-6xl mx-auto">
+      <LunarPhotos />
     </div>
   </section>
 
@@ -124,14 +138,12 @@ import { CREW } from "../lib/astronauts";
   // ── Selectors ──
   const heroTitle = document.querySelector("h1");
   const heroTitleSpans = heroTitle?.querySelectorAll("span");
-  const heroSubtitles = document.querySelectorAll(
-    ".relative.z-10.text-center p:not(.mono)"
-  );
+  const heroSubtitles = document.querySelectorAll(".relative.z-10.text-center p:not(.mono)");
   const heroEyebrow = document.querySelector(".relative.z-10.text-center .mono");
   const missionStatus = document.getElementById("mission-status")?.closest(".relative.z-10.w-full");
   const scrollIndicator = document.querySelector("header .absolute.bottom-10");
 
-  const crewSection = document.querySelector("section.px-6.py-28");
+  const crewSection = document.querySelectorAll("section")[3]; // 4th section = crew
   const crewHeader = crewSection?.querySelector(".mb-20");
   const crewCards = document.querySelectorAll(".card-container");
 
@@ -143,157 +155,85 @@ import { CREW } from "../lib/astronauts";
   const newsHeader = newsSection?.querySelector(".mb-12");
   const timelineEvents = document.querySelectorAll(".timeline-event");
 
-  // ── Initial states (hidden before animation) ──
-  if (heroTitleSpans) {
-    gsap.set(heroTitleSpans, { opacity: 0, y: 60 });
-  }
-  if (heroEyebrow) {
-    gsap.set(heroEyebrow, { opacity: 0, y: 20 });
-  }
-  gsap.set(heroSubtitles, { opacity: 0, y: 30 });
-  if (missionStatus) {
-    gsap.set(missionStatus, { opacity: 0, y: 40 });
-  }
-  if (crewHeader) {
-    gsap.set(crewHeader, { opacity: 0, x: -80 });
-  }
-  gsap.set(crewCards, { opacity: 0, y: 60 });
-  if (mcHeader) {
-    gsap.set(mcHeader, { opacity: 0, x: -80 });
-  }
-  if (mcContent) {
-    gsap.set(mcContent, { opacity: 0, y: 40 });
-  }
-  if (newsHeader) {
-    gsap.set(newsHeader, { opacity: 0, x: -80 });
-  }
-  // Timeline events start slightly shifted (past events will animate in, future stay dimmed)
-  gsap.set(timelineEvents, { opacity: 0, x: 30 });
-
-  // ── 1. Hero title reveal (on page load) ──
-  const heroTl = gsap.timeline({ defaults: { ease: "power3.out" } });
-
-  if (heroEyebrow) {
-    heroTl.to(heroEyebrow, { opacity: 1, y: 0, duration: 0.6 }, 0.2);
-  }
-
-  if (heroTitleSpans) {
-    heroTl.to(
-      heroTitleSpans,
-      { opacity: 1, y: 0, duration: 1.2, stagger: 0.2 },
-      0.4
-    );
-  }
-
-  // ── 2. Hero subtitle fade in after title ──
-  heroTl.to(
-    heroSubtitles,
-    { opacity: 1, y: 0, duration: 0.8, stagger: 0.12 },
-    0.9
+  // All new sections for generic fade-in
+  const fadeInSections = document.querySelectorAll(
+    "#lunar-countdown, #mission-data-section, #lunar-photos"
   );
 
-  // ── 3. Mission status bar fade in ──
-  if (missionStatus) {
-    heroTl.to(
-      missionStatus,
-      { opacity: 1, y: 0, duration: 1 },
-      1.3
-    );
-  }
+  // ── Initial states ──
+  if (heroTitleSpans) gsap.set(heroTitleSpans, { opacity: 0, y: 60 });
+  if (heroEyebrow) gsap.set(heroEyebrow, { opacity: 0, y: 20 });
+  gsap.set(heroSubtitles, { opacity: 0, y: 30 });
+  if (missionStatus) gsap.set(missionStatus, { opacity: 0, y: 40 });
+  if (crewHeader) gsap.set(crewHeader, { opacity: 0, x: -80 });
+  gsap.set(crewCards, { opacity: 0, y: 60 });
+  if (mcHeader) gsap.set(mcHeader, { opacity: 0, x: -80 });
+  if (mcContent) gsap.set(mcContent, { opacity: 0, y: 40 });
+  if (newsHeader) gsap.set(newsHeader, { opacity: 0, x: -80 });
+  gsap.set(timelineEvents, { opacity: 0, x: 30 });
+  gsap.set(fadeInSections, { opacity: 0, y: 40 });
 
-  // ── 4. Crew section header slides in from left ──
-  if (crewHeader) {
-    gsap.to(crewHeader, {
-      opacity: 1,
-      x: 0,
-      duration: 1,
-      ease: "power3.out",
-      scrollTrigger: {
-        trigger: crewHeader,
-        start: "top 80%",
-      },
+  // ── 1. Hero reveal (on page load) ──
+  const heroTl = gsap.timeline({ defaults: { ease: "power3.out" } });
+  if (heroEyebrow) heroTl.to(heroEyebrow, { opacity: 1, y: 0, duration: 0.6 }, 0.2);
+  if (heroTitleSpans) heroTl.to(heroTitleSpans, { opacity: 1, y: 0, duration: 1.2, stagger: 0.2 }, 0.4);
+  heroTl.to(heroSubtitles, { opacity: 1, y: 0, duration: 0.8, stagger: 0.12 }, 0.9);
+  if (missionStatus) heroTl.to(missionStatus, { opacity: 1, y: 0, duration: 1 }, 1.3);
+
+  // ── 2. Generic fade-in for new sections ──
+  fadeInSections.forEach((el) => {
+    gsap.to(el, {
+      opacity: 1, y: 0, duration: 1, ease: "power3.out",
+      scrollTrigger: { trigger: el, start: "top 85%" },
     });
-  }
-
-  // ── 5. Astronaut cards stagger in ──
-  gsap.to(crewCards, {
-    opacity: 1,
-    y: 0,
-    duration: 0.8,
-    stagger: 0.15,
-    ease: "power3.out",
-    scrollTrigger: {
-      trigger: crewCards[0],
-      start: "top 80%",
-    },
   });
 
-  // ── 6. Mission Control section ──
+  // ── 3. Crew ──
+  if (crewHeader) {
+    gsap.to(crewHeader, {
+      opacity: 1, x: 0, duration: 1, ease: "power3.out",
+      scrollTrigger: { trigger: crewHeader, start: "top 80%" },
+    });
+  }
+  gsap.to(crewCards, {
+    opacity: 1, y: 0, duration: 0.8, stagger: 0.15, ease: "power3.out",
+    scrollTrigger: { trigger: crewCards[0], start: "top 80%" },
+  });
+
+  // ── 4. Mission Control ──
   if (mcHeader) {
     gsap.to(mcHeader, {
-      opacity: 1,
-      x: 0,
-      duration: 1,
-      ease: "power3.out",
-      scrollTrigger: {
-        trigger: mcHeader,
-        start: "top 80%",
-      },
+      opacity: 1, x: 0, duration: 1, ease: "power3.out",
+      scrollTrigger: { trigger: mcHeader, start: "top 80%" },
     });
   }
-
   if (mcContent) {
     gsap.to(mcContent, {
-      opacity: 1,
-      y: 0,
-      duration: 1,
-      ease: "power3.out",
-      scrollTrigger: {
-        trigger: mcContent,
-        start: "top 80%",
-      },
+      opacity: 1, y: 0, duration: 1, ease: "power3.out",
+      scrollTrigger: { trigger: mcContent, start: "top 80%" },
     });
   }
 
-  // ── 7. News/Mission Log section ──
+  // ── 5. Mission Log ──
   if (newsHeader) {
     gsap.to(newsHeader, {
-      opacity: 1,
-      x: 0,
-      duration: 1,
-      ease: "power3.out",
-      scrollTrigger: {
-        trigger: newsHeader,
-        start: "top 80%",
-      },
+      opacity: 1, x: 0, duration: 1, ease: "power3.out",
+      scrollTrigger: { trigger: newsHeader, start: "top 80%" },
     });
   }
-
-  // Timeline events stagger in as you scroll
   timelineEvents.forEach((event) => {
     gsap.to(event, {
       opacity: event.classList.contains("is-future") ? 0.35 : 1,
-      x: 0,
-      duration: 0.6,
-      ease: "power3.out",
-      scrollTrigger: {
-        trigger: event,
-        start: "top 85%",
-      },
+      x: 0, duration: 0.6, ease: "power3.out",
+      scrollTrigger: { trigger: event, start: "top 85%" },
     });
   });
 
-  // ── 8. Scroll indicator fades out on scroll ──
+  // ── 6. Scroll indicator fade ──
   if (scrollIndicator) {
     gsap.to(scrollIndicator, {
-      opacity: 0,
-      ease: "none",
-      scrollTrigger: {
-        trigger: document.documentElement,
-        start: "top top",
-        end: "100px top",
-        scrub: true,
-      },
+      opacity: 0, ease: "none",
+      scrollTrigger: { trigger: document.documentElement, start: "top top", end: "100px top", scrub: true },
     });
   }
 </script>

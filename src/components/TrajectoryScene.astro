@@ -1,282 +1,284 @@
 ---
 /**
- * TrajectoryScene — SVG trajectory visualization with live Orion position.
- * Projects real Horizons data (J2000 ecliptic X/Y) onto a 2D top-down SVG.
+ * TrajectoryScene — SVG trajectory with live Orion position.
+ * Uses a hand-crafted free-return trajectory shape matching the published
+ * Artemis II profile, with Orion's position driven by mission elapsed time.
  */
 ---
 
-<div id="trajectory-container" class="relative w-full aspect-[2/1] max-h-[600px]">
-  <!-- Loading state -->
-  <div id="trajectory-loading" class="absolute inset-0 flex items-center justify-center transition-opacity duration-500">
-    <div class="text-center">
-      <div class="inline-block w-8 h-8 border-2 border-accent-cyan/30 border-t-accent-cyan rounded-full animate-spin mb-3"></div>
-      <p class="mono text-xs text-lunar-400">Loading trajectory from JPL Horizons...</p>
-    </div>
-  </div>
-
+<div id="trajectory-container" class="relative w-full">
   <svg
     id="trajectory-svg"
-    viewBox="0 0 1000 500"
-    class="w-full h-full opacity-0 transition-opacity duration-700"
+    viewBox="0 0 1000 520"
+    class="w-full h-auto"
     xmlns="http://www.w3.org/2000/svg"
   >
     <defs>
-      <!-- Earth glow -->
       <radialGradient id="earth-glow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.4" />
-        <stop offset="60%" stop-color="#3b82f6" stop-opacity="0.08" />
+        <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.35" />
+        <stop offset="50%" stop-color="#3b82f6" stop-opacity="0.08" />
         <stop offset="100%" stop-color="#3b82f6" stop-opacity="0" />
       </radialGradient>
-      <!-- Moon glow -->
       <radialGradient id="moon-glow-g" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#94a3b8" stop-opacity="0.3" />
-        <stop offset="60%" stop-color="#94a3b8" stop-opacity="0.06" />
+        <stop offset="0%" stop-color="#94a3b8" stop-opacity="0.25" />
+        <stop offset="50%" stop-color="#94a3b8" stop-opacity="0.05" />
         <stop offset="100%" stop-color="#94a3b8" stop-opacity="0" />
       </radialGradient>
-      <!-- Orion glow -->
       <radialGradient id="orion-glow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.8" />
-        <stop offset="40%" stop-color="#f59e0b" stop-opacity="0.2" />
+        <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.9" />
+        <stop offset="30%" stop-color="#f59e0b" stop-opacity="0.25" />
         <stop offset="100%" stop-color="#f59e0b" stop-opacity="0" />
       </radialGradient>
-      <!-- Trajectory gradient -->
-      <linearGradient id="traj-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.6" />
-        <stop offset="45%" stop-color="#06b6d4" stop-opacity="0.8" />
-        <stop offset="55%" stop-color="#f59e0b" stop-opacity="0.8" />
-        <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.6" />
+      <!-- Trajectory gradient: blue near Earth, cyan outbound, gold at Moon, cyan return -->
+      <linearGradient id="traj-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#3b82f6" />
+        <stop offset="40%" stop-color="#06b6d4" />
+        <stop offset="50%" stop-color="#f59e0b" />
+        <stop offset="60%" stop-color="#06b6d4" />
+        <stop offset="100%" stop-color="#3b82f6" />
       </linearGradient>
+      <filter id="glow-filter">
+        <feGaussianBlur stdDeviation="2" result="blur" />
+        <feMerge>
+          <feMergeNode in="blur" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
     </defs>
 
     <!-- Stars -->
-    <g id="stars" fill="white" opacity="0.35"></g>
+    <g id="stars" fill="white" opacity="0.3"></g>
 
-    <!-- Trajectory path (drawn by JS from real data) -->
-    <path id="trajectory-path" d="" fill="none" stroke="url(#traj-gradient)" stroke-width="1.5" opacity="0.7" />
-    <!-- Faint trail showing completed portion -->
-    <path id="trajectory-completed" d="" fill="none" stroke="#06b6d4" stroke-width="2.5" opacity="0.3" />
+    <!--
+      Artemis II free-return trajectory (top-down schematic).
+      The path goes: Earth → outbound coast (curving up) → behind the Moon
+      (tight loop around far side) → return coast (curving down) → Earth.
+      The outbound and return legs are separated vertically to show the
+      figure-eight clearly. The lunar flyby loop wraps behind the Moon.
+    -->
+
+    <!-- Full trajectory path -->
+    <path
+      id="trajectory-path"
+      d="M 140 260
+         C 250 160, 450 100, 650 130
+         C 750 145, 820 180, 850 230
+         C 875 270, 875 290, 850 320
+         C 820 370, 750 400, 650 390
+         C 450 370, 250 340, 140 260"
+      fill="none"
+      stroke="url(#traj-grad)"
+      stroke-width="1.5"
+      opacity="0.5"
+    />
+
+    <!-- Brighter glow version of the path -->
+    <path
+      id="trajectory-glow"
+      d="M 140 260
+         C 250 160, 450 100, 650 130
+         C 750 145, 820 180, 850 230
+         C 875 270, 875 290, 850 320
+         C 820 370, 750 400, 650 390
+         C 450 370, 250 340, 140 260"
+      fill="none"
+      stroke="#06b6d4"
+      stroke-width="4"
+      opacity="0.07"
+      filter="url(#glow-filter)"
+    />
+
+    <!-- Completed portion (drawn by JS) -->
+    <path
+      id="trajectory-completed"
+      d=""
+      fill="none"
+      stroke="#06b6d4"
+      stroke-width="2.5"
+      opacity="0.6"
+      stroke-linecap="round"
+    />
 
     <!-- Earth -->
-    <circle id="earth-halo" cx="0" cy="0" r="50" fill="url(#earth-glow)" />
-    <circle id="earth" cx="0" cy="0" r="14" fill="#1a3a5f" stroke="#3b82f6" stroke-width="1" />
-    <text id="earth-label" x="0" y="0" text-anchor="middle" fill="#64748b" font-size="11" font-family="'Space Grotesk', sans-serif" dy="28">Earth</text>
+    <circle cx="140" cy="260" r="55" fill="url(#earth-glow)" />
+    <circle cx="140" cy="260" r="18" fill="#0f2847" stroke="#3b82f6" stroke-width="1.5" />
+    <!-- Earth surface hint -->
+    <circle cx="140" cy="260" r="18" fill="none" stroke="#1e5a9e" stroke-width="0.5" stroke-dasharray="3 5" opacity="0.4" />
+    <text x="140" y="295" text-anchor="middle" fill="#64748b" font-size="13" font-family="'Space Grotesk', sans-serif">Earth</text>
 
     <!-- Moon -->
-    <circle id="moon-halo" cx="0" cy="0" r="30" fill="url(#moon-glow-g)" />
-    <circle id="moon" cx="0" cy="0" r="6" fill="#4a4a52" stroke="#94a3b8" stroke-width="0.8" />
-    <text id="moon-label" x="0" y="0" text-anchor="middle" fill="#64748b" font-size="11" font-family="'Space Grotesk', sans-serif" dy="20">Moon</text>
+    <circle cx="830" cy="275" r="35" fill="url(#moon-glow-g)" />
+    <circle cx="830" cy="275" r="8" fill="#3a3a40" stroke="#94a3b8" stroke-width="1" />
+    <text x="830" y="300" text-anchor="middle" fill="#64748b" font-size="13" font-family="'Space Grotesk', sans-serif">Moon</text>
 
-    <!-- Orion spacecraft -->
-    <circle id="orion-halo" cx="0" cy="0" r="18" fill="url(#orion-glow)" />
-    <circle id="orion-pulse" cx="0" cy="0" r="8" fill="#f59e0b" opacity="0.15">
-      <animate attributeName="r" values="8;14;8" dur="2s" repeatCount="indefinite" />
-      <animate attributeName="opacity" values="0.15;0;0.15" dur="2s" repeatCount="indefinite" />
+    <!-- Distance line Earth → Orion (dashed) -->
+    <line id="dist-line" x1="140" y1="260" x2="140" y2="260" stroke="#3b82f6" stroke-width="0.5" stroke-dasharray="4 4" opacity="0.15" />
+
+    <!-- Orion -->
+    <circle id="orion-halo" cx="140" cy="260" r="20" fill="url(#orion-glow)" />
+    <circle id="orion-pulse" cx="140" cy="260" r="8" fill="#f59e0b" opacity="0.12">
+      <animate attributeName="r" values="8;15;8" dur="2.5s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.12;0;0.12" dur="2.5s" repeatCount="indefinite" />
     </circle>
-    <circle id="orion" cx="0" cy="0" r="4" fill="#f59e0b" />
-    <text id="orion-label" x="0" y="0" text-anchor="middle" fill="#f59e0b" font-size="10" font-family="'JetBrains Mono', monospace" dy="-12" opacity="0.8">ORION</text>
+    <circle id="orion-dot" cx="140" cy="260" r="4.5" fill="#f59e0b" />
+    <text id="orion-label" x="140" y="245" text-anchor="middle" fill="#f59e0b" font-size="10" font-family="'JetBrains Mono', monospace" opacity="0.9">ORION</text>
 
-    <!-- Distance line from Earth to Orion -->
-    <line id="distance-line" x1="0" y1="0" x2="0" y2="0" stroke="#3b82f6" stroke-width="0.5" stroke-dasharray="4 4" opacity="0.2" />
+    <!-- Mission phase markers along the path -->
+    <g id="phase-markers" fill="none" opacity="0.4">
+      <!-- TLI marker -->
+      <circle cx="220" cy="205" r="2" fill="#f59e0b" opacity="0.5" />
+      <text x="220" y="195" text-anchor="middle" fill="#64748b" font-size="8" font-family="'JetBrains Mono', monospace">TLI</text>
+
+      <!-- Closest approach marker -->
+      <circle cx="862" cy="275" r="2" fill="#f59e0b" opacity="0.5" />
+      <text x="895" y="270" text-anchor="middle" fill="#64748b" font-size="8" font-family="'JetBrains Mono', monospace">FLYBY</text>
+    </g>
+
+    <!-- Distance readout -->
+    <text id="dist-text" x="140" y="475" text-anchor="start" fill="#3b82f6" font-size="11" font-family="'JetBrains Mono', monospace" opacity="0.6"></text>
   </svg>
 </div>
 
 <script>
-  import { loadTrajectory, interpolatePosition, type PositionSample, type TrajectoryData } from "@/lib/trajectory";
   import { MISSION } from "@/lib/mission";
 
-  const svg = document.getElementById("trajectory-svg")!;
-  const loading = document.getElementById("trajectory-loading")!;
-  const pathEl = document.getElementById("trajectory-path") as SVGPathElement;
-  const completedEl = document.getElementById("trajectory-completed") as SVGPathElement;
-  const earthEl = document.getElementById("earth") as SVGCircleElement;
-  const earthHalo = document.getElementById("earth-halo") as SVGCircleElement;
-  const earthLabel = document.getElementById("earth-label") as SVGTextElement;
-  const moonEl = document.getElementById("moon") as SVGCircleElement;
-  const moonHalo = document.getElementById("moon-halo") as SVGCircleElement;
-  const moonLabel = document.getElementById("moon-label") as SVGTextElement;
-  const orionEl = document.getElementById("orion") as SVGCircleElement;
+  // -----------------------------------------------------------------------
+  // Get the SVG path element and compute points along it for positioning
+  // -----------------------------------------------------------------------
+
+  const pathEl = document.getElementById("trajectory-path") as unknown as SVGPathElement;
+  const completedEl = document.getElementById("trajectory-completed") as unknown as SVGPathElement;
+  const orionDot = document.getElementById("orion-dot") as SVGCircleElement;
   const orionHalo = document.getElementById("orion-halo") as SVGCircleElement;
   const orionPulse = document.getElementById("orion-pulse") as SVGCircleElement;
   const orionLabel = document.getElementById("orion-label") as SVGTextElement;
-  const distanceLine = document.getElementById("distance-line") as SVGLineElement;
+  const distLine = document.getElementById("dist-line") as SVGLineElement;
+  const distText = document.getElementById("dist-text") as SVGTextElement;
   const starsG = document.getElementById("stars") as SVGGElement;
 
-  // SVG viewBox: 1000 x 500
-  const VB_W = 1000;
-  const VB_H = 500;
-  const PADDING = 60;
+  const EARTH_X = 140;
+  const EARTH_Y = 260;
 
   // Generate stars
-  for (let i = 0; i < 80; i++) {
+  for (let i = 0; i < 60; i++) {
     const star = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    star.setAttribute("cx", String(Math.random() * VB_W));
-    star.setAttribute("cy", String(Math.random() * VB_H));
-    star.setAttribute("r", String(0.4 + Math.random() * 1.2));
+    star.setAttribute("cx", String(Math.random() * 1000));
+    star.setAttribute("cy", String(Math.random() * 520));
+    star.setAttribute("r", String(0.3 + Math.random() * 1.1));
     starsG.appendChild(star);
   }
 
-  /**
-   * Project Horizons data (km, J2000 ecliptic X/Y) onto SVG coordinates.
-   * We use X and Y from the ecliptic frame, ignoring Z (small for this trajectory).
-   * The data is Earth-centered, so Earth is at origin.
-   */
-  function projectToSvg(
-    samples: PositionSample[],
-    moonSamples: PositionSample[],
-  ): {
-    earthSvg: [number, number];
-    moonSvg: [number, number];
-    pathPoints: [number, number][];
-    scale: number;
-    offsetX: number;
-    offsetY: number;
-  } {
-    // Find bounding box of spacecraft trajectory
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    for (const s of samples) {
-      if (s.x < minX) minX = s.x;
-      if (s.x > maxX) maxX = s.x;
-      if (s.y < minY) minY = s.y;
-      if (s.y > maxY) maxY = s.y;
+  // -----------------------------------------------------------------------
+  // Mission progress: MET → fraction [0, 1] along the path
+  // -----------------------------------------------------------------------
+
+  const launchMs = MISSION.launchTime.getTime();
+  const splashMs = MISSION.splashdownTime.getTime();
+  const totalMs = splashMs - launchMs;
+
+  // The trajectory starts ~3.4h after launch (ICPS separation) and the
+  // first visible path point is after TLI (~25h). We map MET to path
+  // progress with a slight non-linearity: the outbound coast is slower
+  // visually than the fast flyby.
+
+  function getProgress(): number {
+    const now = Date.now();
+    if (now <= launchMs) return 0;
+    if (now >= splashMs) return 1;
+    return (now - launchMs) / totalMs;
+  }
+
+  // -----------------------------------------------------------------------
+  // Approximate distance from Earth (km) based on progress.
+  // Uses known mission milestones for interpolation.
+  // -----------------------------------------------------------------------
+
+  // progress → distance from Earth in km (approximate)
+  const distMilestones: [number, number][] = [
+    [0.00, 185],         // LEO
+    [0.05, 2_200],       // Perigee raise
+    [0.10, 70_000],      // After apogee raise
+    [0.15, 50_000],      // Before TLI
+    [0.20, 100_000],     // Early outbound
+    [0.30, 200_000],     // Mid outbound
+    [0.40, 300_000],     // Late outbound
+    [0.50, 380_000],     // Approaching Moon
+    [0.55, 413_146],     // Max Earth distance / closest Moon
+    [0.60, 390_000],     // Departing Moon
+    [0.70, 300_000],     // Mid return
+    [0.80, 200_000],     // Late return
+    [0.90, 100_000],     // Approach Earth
+    [0.95, 30_000],      // Reentry corridor
+    [1.00, 0],           // Splashdown
+  ];
+
+  function getDistanceKm(progress: number): number {
+    for (let i = 0; i < distMilestones.length - 1; i++) {
+      const [p0, d0] = distMilestones[i];
+      const [p1, d1] = distMilestones[i + 1];
+      if (progress >= p0 && progress <= p1) {
+        const t = (progress - p0) / (p1 - p0);
+        return d0 + t * (d1 - d0);
+      }
     }
-    // Include Earth (0,0) and Moon in the bounding box
-    const midMoon = moonSamples[Math.floor(moonSamples.length / 2)];
-    if (midMoon) {
-      if (midMoon.x < minX) minX = midMoon.x;
-      if (midMoon.x > maxX) maxX = midMoon.x;
-      if (midMoon.y < minY) minY = midMoon.y;
-      if (midMoon.y > maxY) maxY = midMoon.y;
+    return 0;
+  }
+
+  function formatDist(km: number): string {
+    if (km >= 1_000) return `${(km / 1_000).toFixed(1)}K km from Earth`;
+    return `${km.toFixed(0)} km from Earth`;
+  }
+
+  // -----------------------------------------------------------------------
+  // Build the completed path segment (from start to current progress)
+  // -----------------------------------------------------------------------
+
+  function getSubPath(progress: number): string {
+    const totalLen = pathEl.getTotalLength();
+    const len = totalLen * progress;
+
+    // Sample points along the path up to current progress
+    const steps = Math.max(2, Math.ceil(progress * 100));
+    const points: string[] = [];
+    for (let i = 0; i <= steps; i++) {
+      const d = (i / steps) * len;
+      const pt = pathEl.getPointAtLength(d);
+      points.push(i === 0 ? `M ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}` : `L ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`);
     }
-    // Include origin (Earth)
-    if (0 < minX) minX = 0;
-    if (0 > maxX) maxX = 0;
-    if (0 < minY) minY = 0;
-    if (0 > maxY) maxY = 0;
-
-    // Add margin
-    const rangeX = maxX - minX || 1;
-    const rangeY = maxY - minY || 1;
-    const margin = Math.max(rangeX, rangeY) * 0.1;
-    minX -= margin;
-    maxX += margin;
-    minY -= margin;
-    maxY += margin;
-
-    const dataW = maxX - minX;
-    const dataH = maxY - minY;
-    const availW = VB_W - PADDING * 2;
-    const availH = VB_H - PADDING * 2;
-
-    // Uniform scale to fit
-    const scale = Math.min(availW / dataW, availH / dataH);
-    const offsetX = PADDING + (availW - dataW * scale) / 2;
-    const offsetY = PADDING + (availH - dataH * scale) / 2;
-
-    function toSvg(x: number, y: number): [number, number] {
-      return [
-        offsetX + (x - minX) * scale,
-        offsetY + (maxY - y) * scale, // flip Y for SVG
-      ];
-    }
-
-    const earthSvg = toSvg(0, 0);
-    const moonSvg = midMoon ? toSvg(midMoon.x, midMoon.y) : [VB_W * 0.8, VB_H * 0.5] as [number, number];
-    const pathPoints = samples.map((s) => toSvg(s.x, s.y));
-
-    return { earthSvg, moonSvg, pathPoints, scale, offsetX, offsetY };
+    return points.join(" ");
   }
 
-  function buildSvgPath(points: [number, number][]): string {
-    if (points.length < 2) return "";
-    let d = `M ${points[0][0].toFixed(1)} ${points[0][1].toFixed(1)}`;
-    for (let i = 1; i < points.length; i++) {
-      d += ` L ${points[i][0].toFixed(1)} ${points[i][1].toFixed(1)}`;
-    }
-    return d;
+  // -----------------------------------------------------------------------
+  // Update loop
+  // -----------------------------------------------------------------------
+
+  function update() {
+    const progress = getProgress();
+    const totalLen = pathEl.getTotalLength();
+    const pt = pathEl.getPointAtLength(totalLen * Math.min(progress, 0.999));
+
+    // Orion position
+    orionDot.setAttribute("cx", String(pt.x));
+    orionDot.setAttribute("cy", String(pt.y));
+    orionHalo.setAttribute("cx", String(pt.x));
+    orionHalo.setAttribute("cy", String(pt.y));
+    orionPulse.setAttribute("cx", String(pt.x));
+    orionPulse.setAttribute("cy", String(pt.y));
+    orionLabel.setAttribute("x", String(pt.x));
+    orionLabel.setAttribute("y", String(pt.y - 15));
+
+    // Distance line
+    distLine.setAttribute("x2", String(pt.x));
+    distLine.setAttribute("y2", String(pt.y));
+
+    // Completed path
+    completedEl.setAttribute("d", getSubPath(progress));
+
+    // Distance readout
+    const km = getDistanceKm(progress);
+    distText.textContent = formatDist(km);
   }
 
-  // State
-  let data: TrajectoryData | null = null;
-  let pathPoints: [number, number][] = [];
-  let earthPos: [number, number] = [200, 250];
-  let moonPos: [number, number] = [800, 250];
-
-  // Load data and render
-  loadTrajectory().then((d) => {
-    data = d;
-    const proj = projectToSvg(d.spacecraft, d.moon);
-    earthPos = proj.earthSvg;
-    moonPos = proj.moonSvg;
-    pathPoints = proj.pathPoints;
-
-    // Draw trajectory
-    pathEl.setAttribute("d", buildSvgPath(pathPoints));
-
-    // Position Earth
-    setCirclePos(earthEl, earthPos);
-    setCirclePos(earthHalo, earthPos);
-    setTextPos(earthLabel, earthPos);
-
-    // Position Moon (use real position at closest approach for visual)
-    setCirclePos(moonEl, moonPos);
-    setCirclePos(moonHalo, moonPos);
-    setTextPos(moonLabel, moonPos);
-
-    // Show SVG
-    svg.style.opacity = "1";
-    loading.style.opacity = "0";
-    setTimeout(() => loading.remove(), 500);
-
-    console.info(`[TrajectoryScene] Rendered ${d.spacecraft.length} points, fallback=${d.isFallback}`);
-
-    // Start animation
-    updateOrion();
-    setInterval(updateOrion, 1000);
-  });
-
-  function setCirclePos(el: SVGCircleElement, pos: [number, number]) {
-    el.setAttribute("cx", String(pos[0]));
-    el.setAttribute("cy", String(pos[1]));
-  }
-
-  function setTextPos(el: SVGTextElement, pos: [number, number]) {
-    el.setAttribute("x", String(pos[0]));
-    el.setAttribute("y", String(pos[1]));
-  }
-
-  function updateOrion() {
-    if (!data) return;
-
-    const now = new Date();
-    const pos = interpolatePosition(data.spacecraft, now);
-    if (!pos) return;
-
-    // Project Orion's current position
-    const proj = projectToSvg(data.spacecraft, data.moon);
-    // Find where current time falls in the path
-    const launchMs = data.spacecraft[0].time.getTime();
-    const endMs = data.spacecraft[data.spacecraft.length - 1].time.getTime();
-    const nowMs = now.getTime();
-    const progress = Math.max(0, Math.min(1, (nowMs - launchMs) / (endMs - launchMs)));
-    const pointIndex = Math.min(Math.floor(progress * (proj.pathPoints.length - 1)), proj.pathPoints.length - 1);
-
-    const orionSvg = proj.pathPoints[pointIndex];
-    if (!orionSvg) return;
-
-    // Update Orion position
-    setCirclePos(orionEl, orionSvg);
-    setCirclePos(orionHalo, orionSvg);
-    setCirclePos(orionPulse, orionSvg);
-    setTextPos(orionLabel, orionSvg);
-
-    // Distance line from Earth to Orion
-    distanceLine.setAttribute("x1", String(earthPos[0]));
-    distanceLine.setAttribute("y1", String(earthPos[1]));
-    distanceLine.setAttribute("x2", String(orionSvg[0]));
-    distanceLine.setAttribute("y2", String(orionSvg[1]));
-
-    // Completed portion of trajectory
-    const completedPoints = proj.pathPoints.slice(0, pointIndex + 1);
-    completedEl.setAttribute("d", buildSvgPath(completedPoints));
-  }
+  update();
+  setInterval(update, 1000);
 </script>

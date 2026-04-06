@@ -5,53 +5,49 @@
  */
 ---
 
-<div id="mission-data-section" class="glass px-6 sm:px-10 py-10 sm:py-14">
-  <!-- Top row: big progress + big distance -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-10 sm:gap-16 mb-10">
-    <!-- Progress -->
-    <div>
-      <p class="mono text-[10px] tracking-[0.2em] text-lunar-300 uppercase mb-2">Mission Progress</p>
-      <div class="flex items-baseline gap-3">
-        <span id="md-pct" class="font-display font-black text-[clamp(3.5rem,8vw,6rem)] leading-none text-accent-cyan">0</span>
-        <span class="font-display font-black text-[clamp(1.5rem,3vw,2.5rem)] text-accent-cyan/80">%</span>
-      </div>
-      <!-- Progress bar -->
-      <div class="mt-4 h-1.5 w-full bg-space-600 rounded-full overflow-hidden">
-        <div id="md-bar" class="h-full bg-accent-cyan rounded-full transition-all duration-1000" style="width: 0%"></div>
-      </div>
+<div id="mission-data-section">
+  <!-- Progress -->
+  <div class="mb-8">
+    <p class="mono text-[10px] tracking-[0.2em] text-lunar-300 uppercase mb-2">Mission Progress</p>
+    <div class="flex items-baseline gap-3">
+      <span id="md-pct" class="font-display font-black text-[clamp(3rem,7vw,5rem)] leading-none text-accent-cyan">0</span>
+      <span class="font-display font-black text-[clamp(1.2rem,2.5vw,2rem)] text-accent-cyan/80">%</span>
     </div>
-
-    <!-- Distance -->
-    <div>
-      <p class="mono text-[10px] tracking-[0.2em] text-lunar-300 uppercase mb-2">Distance from Earth</p>
-      <div class="flex items-baseline gap-2">
-        <span id="md-dist" class="font-display font-black text-[clamp(3.5rem,8vw,6rem)] leading-none text-lunar-100">---</span>
-        <span class="font-heading font-extrabold text-[clamp(1rem,2vw,1.5rem)] text-lunar-400 uppercase">km</span>
-      </div>
+    <div class="mt-4 h-1.5 w-full bg-space-600 rounded-full overflow-hidden">
+      <div id="md-bar" class="h-full bg-accent-cyan rounded-full transition-all duration-1000" style="width: 0%"></div>
     </div>
   </div>
 
-  <!-- Bottom row: three comparison stats -->
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-8 border-t border-glass-border">
+  <!-- Distance -->
+  <div class="mb-8 pb-8 border-b border-glass-border">
+    <p class="mono text-[10px] tracking-[0.2em] text-lunar-300 uppercase mb-2">Distance from Earth</p>
+    <div class="flex items-baseline gap-2 flex-wrap">
+      <span id="md-dist" class="font-display font-black text-[clamp(3rem,7vw,5rem)] leading-none text-lunar-100">---</span>
+      <span class="font-heading font-extrabold text-[clamp(1rem,2vw,1.3rem)] text-lunar-400 uppercase">km</span>
+    </div>
+  </div>
+
+  <!-- Comparison stats -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
     <div>
       <p class="mono text-[10px] tracking-[0.2em] text-lunar-300 uppercase mb-1">Earth Diameters</p>
       <p class="flex items-baseline gap-1">
-        <span id="md-earths" class="font-display font-bold text-3xl text-lunar-100">--</span>
+        <span id="md-earths" class="font-display font-bold text-2xl sm:text-3xl text-lunar-100">--</span>
         <span class="text-sm text-lunar-300">× Earth</span>
       </p>
     </div>
     <div>
       <p class="mono text-[10px] tracking-[0.2em] text-lunar-300 uppercase mb-1">Light Travel Time</p>
       <p class="flex items-baseline gap-1">
-        <span id="md-light" class="font-display font-bold text-3xl text-accent-gold">--</span>
+        <span id="md-light" class="font-display font-bold text-2xl sm:text-3xl text-accent-gold">--</span>
         <span class="text-sm text-lunar-300">seconds</span>
       </p>
     </div>
     <div>
       <p class="mono text-[10px] tracking-[0.2em] text-lunar-300 uppercase mb-1">Driving at 130 km/h</p>
       <p class="flex items-baseline gap-1">
-        <span id="md-drive" class="font-display font-bold text-3xl text-accent-cyan">--</span>
-        <span id="md-drive-unit" class="text-sm text-lunar-400">days</span>
+        <span id="md-drive" class="font-display font-bold text-2xl sm:text-3xl text-accent-cyan">--</span>
+        <span id="md-drive-unit" class="text-sm text-lunar-300">days</span>
       </p>
     </div>
   </div>

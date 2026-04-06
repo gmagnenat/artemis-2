@@ -7,11 +7,11 @@
 import { MISSION } from "../lib/mission";
 ---
 
-<section id="lunar-countdown" class="relative w-full px-6 py-24 sm:py-32 overflow-hidden">
+<div id="lunar-countdown" class="relative w-full overflow-hidden">
   <!-- Background glow -->
   <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-accent-gold/[0.03] blur-[120px] pointer-events-none"></div>
 
-  <div class="relative z-10 max-w-4xl mx-auto">
+  <div class="relative z-10">
     <div class="glass px-8 sm:px-12 py-12 sm:py-16 text-center">
       <!-- Eyebrow label -->
       <p id="countdown-eyebrow" class="mono text-[10px] tracking-[0.4em] text-lunar-300 uppercase mb-6">
@@ -39,7 +39,7 @@ import { MISSION } from "../lib/mission";
       </p>
     </div>
   </div>
-</section>
+</div>
 
 <script>
   import { MISSION } from "../lib/mission";

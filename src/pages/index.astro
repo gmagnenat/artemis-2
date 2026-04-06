@@ -12,55 +12,44 @@ import { CREW } from "../lib/astronauts";
 
 <Layout>
   <!-- ══ Hero ══ -->
-  <header class="relative min-h-screen flex flex-col items-center justify-center px-6 py-24">
+  <header class="relative px-6 py-20 sm:py-28">
     <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-accent-blue/[0.04] blur-[150px] pointer-events-none"></div>
 
-    <div class="relative z-10 text-center max-w-5xl mx-auto">
-      <p class="mono text-[11px] tracking-[0.4em] text-lunar-300 uppercase mb-6">
-        NASA · Artemis Program · 2026
-      </p>
-      <h1 class="font-display font-black uppercase leading-[0.9] tracking-tight">
-        <span class="text-[clamp(4rem,12vw,10rem)] text-gradient">Artemis</span>
-        <br />
-        <span class="text-[clamp(4rem,12vw,10rem)] text-accent-blue">II</span>
-      </h1>
-      <p class="text-lg sm:text-xl text-lunar-300 mt-8 max-w-2xl mx-auto leading-relaxed">
-        Four astronauts. Ten days. Around the Moon and back.
-      </p>
-      <p class="text-sm text-lunar-300 mt-2">
-        The first crewed lunar mission in over 50 years.
-      </p>
-    </div>
+    <div class="relative z-10 max-w-6xl mx-auto">
+      <div class="text-center">
+        <p class="mono text-[11px] tracking-[0.4em] text-lunar-300 uppercase mb-6">
+          NASA · Artemis Program · 2026
+        </p>
+        <h1 class="font-display font-black uppercase leading-[0.9] tracking-tight">
+          <span class="text-[clamp(4rem,12vw,10rem)] text-gradient">Artemis</span>
+          <br />
+          <span class="text-[clamp(4rem,12vw,10rem)] text-accent-blue">II</span>
+        </h1>
+        <p class="text-lg sm:text-xl text-lunar-300 mt-8 max-w-2xl mx-auto leading-relaxed">
+          Four astronauts. Ten days. Around the Moon and back.
+        </p>
+        <p class="text-sm text-lunar-300 mt-2">
+          The first crewed lunar mission in over 50 years.
+        </p>
+      </div>
 
-    <div class="relative z-10 w-full max-w-5xl mx-auto mt-16">
-      <MissionStatus />
-    </div>
-
-    <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-lunar-300/70">
-      <span class="mono text-[10px] uppercase tracking-[0.3em]">Scroll</span>
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" class="animate-bounce">
-        <path d="M4 6l4 4 4-4" />
-      </svg>
+      <div class="mt-16">
+        <MissionStatus />
+      </div>
     </div>
   </header>
 
   <main id="main-content">
-  <!-- ══ Lunar Flyby Countdown ══ -->
-  <section class="px-6 py-16">
-    <div class="max-w-5xl mx-auto">
+  <!-- ══ Lunar Flyby Countdown + Mission Data ══ -->
+  <section class="px-6 py-12">
+    <div class="max-w-6xl mx-auto space-y-8">
       <LunarCountdown />
-    </div>
-  </section>
-
-  <!-- ══ Mission Data ══ -->
-  <section class="px-6 py-20">
-    <div class="max-w-6xl mx-auto">
       <MissionData />
     </div>
   </section>
 
   <!-- ══ Crew ══ -->
-  <section class="px-6 py-28">
+  <section class="px-6 py-16 sm:py-20">
     <div class="max-w-6xl mx-auto">
       <div class="mb-20">
         <p class="font-heading font-extrabold text-[11px] tracking-[0.35em] text-accent-gold uppercase mb-4">The Crew</p>
@@ -81,7 +70,7 @@ import { CREW } from "../lib/astronauts";
   </section>
 
   <!-- ══ Mission Control ══ -->
-  <section id="trajectory" class="px-6 py-28">
+  <section id="trajectory" class="px-6 py-16 sm:py-20">
     <div class="max-w-6xl mx-auto">
       <div class="mb-12">
         <p class="font-heading font-extrabold text-[11px] tracking-[0.35em] text-accent-cyan uppercase mb-4">Mission Control</p>
@@ -96,7 +85,7 @@ import { CREW } from "../lib/astronauts";
 
 
   <!-- ══ Mission Log ══ -->
-  <section id="news" class="px-6 py-28">
+  <section id="news" class="px-6 py-16 sm:py-20">
     <div class="max-w-6xl mx-auto">
       <div class="mb-12">
         <p class="font-heading font-extrabold text-[11px] tracking-[0.35em] text-accent-gold uppercase mb-4">Mission Log</p>
@@ -110,7 +99,7 @@ import { CREW } from "../lib/astronauts";
   </section>
 
   <!-- ══ Lunar Photos ══ -->
-  <section class="px-6 py-28">
+  <section class="px-6 py-16 sm:py-20">
     <div class="max-w-6xl mx-auto">
       <LunarPhotos />
     </div>
@@ -143,7 +132,6 @@ import { CREW } from "../lib/astronauts";
   const heroSubtitles = document.querySelectorAll(".relative.z-10.text-center p:not(.mono)");
   const heroEyebrow = document.querySelector(".relative.z-10.text-center .mono");
   const missionStatus = document.getElementById("mission-status")?.closest(".relative.z-10.w-full");
-  const scrollIndicator = document.querySelector("header .absolute.bottom-10");
 
   const crewSection = document.querySelectorAll("section")[3]; // 4th section = crew
   const crewHeader = crewSection?.querySelector(".mb-20");
@@ -231,11 +219,4 @@ import { CREW } from "../lib/astronauts";
     });
   });
 
-  // ── 6. Scroll indicator fade ──
-  if (scrollIndicator) {
-    gsap.to(scrollIndicator, {
-      opacity: 0, ease: "none",
-      scrollTrigger: { trigger: document.documentElement, start: "top top", end: "100px top", scrub: true },
-    });
-  }
 </script>

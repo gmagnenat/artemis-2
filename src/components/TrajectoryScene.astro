@@ -1,128 +1,125 @@
 ---
 /**
- * TrajectoryScene — Mission Control display with NASA live video backdrop.
- * Cinematic telemetry overlay on real Artemis II footage.
+ * TrajectoryScene — Mission Control display.
+ * NASA live video on top, trajectory + telemetry below.
  */
-import { MISSION } from "../lib/mission";
 ---
 
-<section id="mission-control" class="relative w-full overflow-hidden rounded-xl">
-  <!-- NASA Live Video Background -->
-  <div class="relative aspect-video w-full bg-space-900">
-    <iframe
-      id="nasa-live"
-      src="https://www.youtube.com/embed/6RwfNBtepa4?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&modestbranding=1&playsinline=1"
-      class="absolute inset-0 w-full h-full"
-      allow="autoplay; encrypted-media"
-      allowfullscreen
-      loading="lazy"
-    ></iframe>
+<div class="space-y-4">
+  <!-- NASA Live Video -->
+  <div class="relative rounded-xl overflow-hidden">
+    <div class="relative aspect-video w-full bg-space-800">
+      <iframe
+        src="https://www.youtube.com/embed/6RwfNBtepa4?autoplay=1&mute=1&rel=0&modestbranding=1&playsinline=1"
+        class="absolute inset-0 w-full h-full"
+        allow="autoplay; encrypted-media"
+        allowfullscreen
+        loading="lazy"
+      ></iframe>
+    </div>
+    <!-- Live badge -->
+    <div class="absolute top-3 left-3 flex items-center gap-2 glass !bg-space-900/70 px-3 py-1.5 rounded-full">
+      <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+      <span class="mono text-[10px] tracking-widest text-red-400 uppercase">Live</span>
+    </div>
+    <div class="absolute top-3 right-3 glass !bg-space-900/70 px-3 py-1.5 rounded-full">
+      <span class="mono text-[10px] tracking-widest text-lunar-400 uppercase">
+        Day <span id="mc-day">--</span> · Views from Orion
+      </span>
+    </div>
+  </div>
 
-    <!-- Dark vignette overlay -->
-    <div class="absolute inset-0 bg-gradient-to-t from-space-900 via-space-900/60 to-space-900/30 pointer-events-none"></div>
-    <div class="absolute inset-0 bg-gradient-to-r from-space-900/50 via-transparent to-space-900/50 pointer-events-none"></div>
+  <!-- Trajectory + Telemetry panel -->
+  <div class="glass rounded-xl p-5 sm:p-6">
+    <!-- Trajectory diagram -->
+    <svg id="mc-trajectory" viewBox="0 0 700 180" class="w-full h-auto mb-5">
+      <!-- Full trajectory path -->
+      <path
+        d="M 60 90 C 160 30, 350 10, 500 40
+           C 570 55, 610 75, 630 90
+           C 645 102, 645 108, 630 118
+           C 610 133, 570 148, 500 142
+           C 350 128, 160 130, 60 90"
+        fill="none"
+        stroke="#06b6d4"
+        stroke-width="1"
+        opacity="0.25"
+      />
+      <!-- Completed portion -->
+      <path
+        id="mc-completed-path"
+        d=""
+        fill="none"
+        stroke="#06b6d4"
+        stroke-width="2.5"
+        opacity="0.6"
+        stroke-linecap="round"
+      />
 
-    <!-- Scanline effect -->
-    <div class="absolute inset-0 pointer-events-none opacity-[0.03]" style="background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.05) 2px, rgba(255,255,255,0.05) 4px);"></div>
+      <!-- Earth -->
+      <circle cx="60" cy="90" r="40" fill="#3b82f6" opacity="0.04" />
+      <circle cx="60" cy="90" r="11" fill="#0f2847" stroke="#3b82f6" stroke-width="1.2" />
+      <text x="60" y="113" text-anchor="middle" fill="#3b82f6" font-size="9" font-family="'JetBrains Mono', monospace" opacity="0.5">EARTH</text>
 
-    <!-- Mission Control Overlay -->
-    <div class="absolute inset-0 flex flex-col justify-between p-4 sm:p-6 pointer-events-none">
+      <!-- Moon -->
+      <circle cx="630" cy="103" r="25" fill="#94a3b8" opacity="0.03" />
+      <circle cx="630" cy="103" r="5" fill="#3a3a40" stroke="#94a3b8" stroke-width="0.8" />
+      <text x="630" y="120" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="'JetBrains Mono', monospace" opacity="0.5">MOON</text>
 
-      <!-- Top bar: mission identity -->
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-          <span class="mono text-[11px] tracking-widest text-green-400/80 uppercase">Live from Orion</span>
-        </div>
-        <div class="mono text-[11px] tracking-wider text-lunar-400/60 uppercase">
-          Artemis II · Day <span id="mc-day">--</span>
-        </div>
+      <!-- Orion -->
+      <circle id="mc-orion-glow" cx="60" cy="90" r="10" fill="#f59e0b" opacity="0.12">
+        <animate attributeName="r" values="10;18;10" dur="2.5s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="0.12;0;0.12" dur="2.5s" repeatCount="indefinite" />
+      </circle>
+      <circle id="mc-orion" cx="60" cy="90" r="3.5" fill="#f59e0b" />
+      <text id="mc-orion-label" x="60" y="78" text-anchor="middle" fill="#f59e0b" font-size="8" font-family="'JetBrains Mono', monospace" opacity="0.7">ORION</text>
+
+      <!-- Distance line -->
+      <line id="mc-dist-line" x1="60" y1="90" x2="60" y2="90" stroke="#3b82f6" stroke-width="0.4" stroke-dasharray="3 3" opacity="0.15" />
+    </svg>
+
+    <!-- Telemetry grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="mc-tel">
+        <span class="mc-label">Mission Elapsed Time</span>
+        <span id="mc-met" class="mc-value mono">--:--:--:--</span>
       </div>
-
-      <!-- Center: trajectory diagram (clean, minimal) -->
-      <div class="flex-1 flex items-center justify-center">
-        <svg id="mc-trajectory" viewBox="0 0 600 200" class="w-full max-w-2xl h-auto opacity-80">
-          <!-- Trajectory path -->
-          <path
-            d="M 60 100 C 150 40, 300 20, 420 50 C 480 65, 520 85, 535 100 C 545 112, 545 118, 535 128 C 520 145, 480 160, 420 155 C 300 145, 150 140, 60 100"
-            fill="none"
-            stroke="#06b6d4"
-            stroke-width="1"
-            opacity="0.3"
-          />
-          <!-- Completed path -->
-          <path
-            id="mc-completed-path"
-            d=""
-            fill="none"
-            stroke="#06b6d4"
-            stroke-width="2"
-            opacity="0.6"
-            stroke-linecap="round"
-          />
-
-          <!-- Earth -->
-          <circle cx="60" cy="100" r="12" fill="#0f2847" stroke="#3b82f6" stroke-width="1" opacity="0.8" />
-          <text x="60" y="125" text-anchor="middle" fill="#3b82f6" font-size="9" font-family="'JetBrains Mono', monospace" opacity="0.5">EARTH</text>
-
-          <!-- Moon -->
-          <circle cx="535" cy="114" r="5" fill="#3a3a40" stroke="#94a3b8" stroke-width="0.8" opacity="0.8" />
-          <text x="535" y="132" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="'JetBrains Mono', monospace" opacity="0.5">MOON</text>
-
-          <!-- Orion dot -->
-          <circle id="mc-orion-glow" cx="60" cy="100" r="10" fill="#f59e0b" opacity="0.15">
-            <animate attributeName="r" values="10;16;10" dur="2.5s" repeatCount="indefinite" />
-            <animate attributeName="opacity" values="0.15;0;0.15" dur="2.5s" repeatCount="indefinite" />
-          </circle>
-          <circle id="mc-orion" cx="60" cy="100" r="3.5" fill="#f59e0b" />
-        </svg>
+      <div class="mc-tel">
+        <span class="mc-label">Current Phase</span>
+        <span id="mc-phase" class="mc-value text-accent-gold">---</span>
       </div>
-
-      <!-- Bottom: telemetry grid -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
-        <div class="mc-tel glass !bg-space-900/60 p-3 rounded-lg">
-          <span class="mc-label">MET</span>
-          <span id="mc-met" class="mc-value mono">--:--:--:--</span>
-        </div>
-        <div class="mc-tel glass !bg-space-900/60 p-3 rounded-lg">
-          <span class="mc-label">PHASE</span>
-          <span id="mc-phase" class="mc-value text-accent-gold">---</span>
-        </div>
-        <div class="mc-tel glass !bg-space-900/60 p-3 rounded-lg">
-          <span class="mc-label">EARTH DIST</span>
-          <span id="mc-earth-dist" class="mc-value mono">--- km</span>
-        </div>
-        <div class="mc-tel glass !bg-space-900/60 p-3 rounded-lg">
-          <span class="mc-label">MOON DIST</span>
-          <span id="mc-moon-dist" class="mc-value mono">--- km</span>
-        </div>
+      <div class="mc-tel">
+        <span class="mc-label">Distance from Earth</span>
+        <span id="mc-earth-dist" class="mc-value mono">--- km</span>
+      </div>
+      <div class="mc-tel">
+        <span class="mc-label">Distance from Moon</span>
+        <span id="mc-moon-dist" class="mc-value mono">--- km</span>
       </div>
     </div>
   </div>
-</section>
+</div>
 
 <style>
   .mc-tel {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    pointer-events: auto;
+    gap: 4px;
   }
   .mc-label {
-    font-size: 9px;
+    font-size: 10px;
     text-transform: uppercase;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.1em;
     color: var(--color-lunar-400);
-    opacity: 0.6;
     font-family: var(--font-mono);
   }
   .mc-value {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
     color: var(--color-lunar-100);
   }
   @media (max-width: 640px) {
-    .mc-value { font-size: 13px; }
+    .mc-value { font-size: 14px; }
   }
 </style>
 
@@ -130,7 +127,6 @@ import { MISSION } from "../lib/mission";
   import { getMissionElapsedTime, getMissionPhase, formatMET, MISSION } from "../lib/mission";
   import { loadTrajectory, getDistancesAt, type TrajectoryData } from "../lib/trajectory";
 
-  // Elements
   const metEl = document.getElementById("mc-met")!;
   const phaseEl = document.getElementById("mc-phase")!;
   const earthDistEl = document.getElementById("mc-earth-dist")!;
@@ -138,16 +134,14 @@ import { MISSION } from "../lib/mission";
   const dayEl = document.getElementById("mc-day")!;
   const orionDot = document.getElementById("mc-orion")!;
   const orionGlow = document.getElementById("mc-orion-glow")!;
+  const orionLabel = document.getElementById("mc-orion-label")!;
   const completedPath = document.getElementById("mc-completed-path")!;
-
-  // Trajectory SVG path for positioning Orion
+  const distLine = document.getElementById("mc-dist-line")!;
   const trajPath = document.querySelector("#mc-trajectory path:first-of-type") as SVGPathElement;
 
-  // Trajectory data for real distances
   let trajectoryData: TrajectoryData | null = null;
   loadTrajectory().then((d) => { trajectoryData = d; });
 
-  // Mission timing
   const launchMs = MISSION.launchTime.getTime();
   const splashMs = MISSION.splashdownTime.getTime();
   const totalMs = splashMs - launchMs;
@@ -164,7 +158,6 @@ import { MISSION } from "../lib/mission";
     return `${km.toFixed(0)} km`;
   }
 
-  // Build completed sub-path
   function getSubPath(progress: number): string {
     if (!trajPath) return "";
     const totalLen = trajPath.getTotalLength();
@@ -185,19 +178,16 @@ import { MISSION } from "../lib/mission";
     const progress = getProgress();
     const day = Math.floor(met / 86400) + 1;
 
-    // MET
     metEl.textContent = formatMET(met);
     phaseEl.textContent = phase.label;
     phaseEl.style.color = phase.color;
     dayEl.textContent = String(day);
 
-    // Distances (real if available, estimate otherwise)
     if (trajectoryData) {
       const dist = getDistancesAt(trajectoryData.spacecraft, trajectoryData.moon, new Date());
       earthDistEl.textContent = formatDist(dist.earth);
       moonDistEl.textContent = formatDist(dist.moon);
     } else {
-      // Rough estimate
       const peak = 0.55;
       let earthKm: number;
       if (progress < peak) {
@@ -209,7 +199,6 @@ import { MISSION } from "../lib/mission";
       moonDistEl.textContent = formatDist(Math.max(0, 384_400 - earthKm));
     }
 
-    // Position Orion on the SVG trajectory
     if (trajPath) {
       const totalLen = trajPath.getTotalLength();
       const pt = trajPath.getPointAtLength(totalLen * Math.min(progress, 0.999));
@@ -217,8 +206,10 @@ import { MISSION } from "../lib/mission";
       orionDot.setAttribute("cy", String(pt.y));
       orionGlow.setAttribute("cx", String(pt.x));
       orionGlow.setAttribute("cy", String(pt.y));
-
-      // Completed path
+      orionLabel.setAttribute("x", String(pt.x));
+      orionLabel.setAttribute("y", String(pt.y - 12));
+      distLine.setAttribute("x2", String(pt.x));
+      distLine.setAttribute("y2", String(pt.y));
       completedPath.setAttribute("d", getSubPath(progress));
     }
   }

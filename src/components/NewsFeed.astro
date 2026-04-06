@@ -14,6 +14,10 @@ interface TimelineEvent {
   tagColor: string;
   /** Seconds after launch */
   metSeconds: number;
+  /** Optional audio clip path */
+  audio?: string;
+  /** Audio label shown on button */
+  audioLabel?: string;
 }
 
 const h = (hours: number) => hours * 3600;
@@ -28,6 +32,8 @@ const events: TimelineEvent[] = [
     tag: "LAUNCH",
     tagColor: "text-accent-red",
     metSeconds: 0,
+    audio: "/audio/liftoff.mp3",
+    audioLabel: "\"Liftoff!\"",
   },
   {
     met: "T+00:20:00",
@@ -82,6 +88,8 @@ const events: TimelineEvent[] = [
     tag: "TLI",
     tagColor: "text-accent-gold",
     metSeconds: d(1) + h(1.23),
+    audio: "/audio/go-for-tli.mp3",
+    audioLabel: "\"Go for TLI\"",
   },
   {
     met: "T+1/01:35",
@@ -91,6 +99,8 @@ const events: TimelineEvent[] = [
     tag: "NAVIGATION",
     tagColor: "text-accent-blue",
     metSeconds: d(1) + h(1.58),
+    audio: "/audio/good-burn.mp3",
+    audioLabel: "\"Good burn\"",
   },
   {
     met: "T+4/04:28",
@@ -118,6 +128,8 @@ const events: TimelineEvent[] = [
     tag: "LUNAR FLYBY",
     tagColor: "text-accent-gold",
     metSeconds: d(5) + h(0.43),
+    audio: "/audio/moonrise.mp3",
+    audioLabel: "\"Beautiful moonrise\"",
   },
   {
     met: "T+5/18:52",
@@ -163,6 +175,8 @@ const events: TimelineEvent[] = [
     tag: "RECOVERY",
     tagColor: "text-accent-red",
     metSeconds: d(9) + h(1.7),
+    audio: "/audio/humanity.mp3",
+    audioLabel: "\"Humanity has shown...\"",
   },
 ];
 
@@ -178,6 +192,7 @@ const rendered = events.map((event, i) => {
     stateClass: isCurrent ? "is-current is-past" : isPast ? "is-past" : "is-future",
     dotClass: isCurrent ? "timeline-dot current" : "timeline-dot",
     showPulse: isCurrent,
+    hasAudio: !!event.audio,
   };
 });
 ---
@@ -219,7 +234,24 @@ const rendered = events.map((event, i) => {
           </div>
           <h3 class="font-heading font-extrabold text-base sm:text-lg uppercase tracking-wide text-lunar-100 mb-1.5">{event.title}</h3>
           <p class="text-sm text-lunar-300 leading-relaxed">{event.description}</p>
-          <p class="mono text-[10px] text-lunar-400/50 mt-2">{event.date}</p>
+          <div class="flex items-center justify-between mt-2">
+            <p class="mono text-[10px] text-lunar-400/50">{event.date}</p>
+            {event.hasAudio && (
+              <button
+                class="audio-btn flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-space-600/40 hover:bg-space-500/50 transition-colors cursor-pointer border border-glass-border"
+                data-audio={event.audio}
+              >
+                <svg class="audio-icon-play w-2.5 h-2.5 text-accent-gold" viewBox="0 0 12 12" fill="currentColor">
+                  <polygon points="2,0 12,6 2,12" />
+                </svg>
+                <svg class="audio-icon-pause w-2.5 h-2.5 text-accent-gold hidden" viewBox="0 0 12 12" fill="currentColor">
+                  <rect x="1" y="0" width="3.5" height="12" />
+                  <rect x="7.5" y="0" width="3.5" height="12" />
+                </svg>
+                <span class="mono text-[9px] text-accent-gold/70">{event.audioLabel}</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
     ))}
@@ -391,4 +423,47 @@ const rendered = events.map((event, i) => {
 
   updateTimeline();
   setInterval(updateTimeline, 10_000);
+
+  // ── Audio playback ──
+  let currentAudio: HTMLAudioElement | null = null;
+  let currentBtn: HTMLElement | null = null;
+
+  function resetBtn(btn: HTMLElement) {
+    btn.querySelector(".audio-icon-play")?.classList.remove("hidden");
+    btn.querySelector(".audio-icon-pause")?.classList.add("hidden");
+  }
+
+  function setPlaying(btn: HTMLElement) {
+    btn.querySelector(".audio-icon-play")?.classList.add("hidden");
+    btn.querySelector(".audio-icon-pause")?.classList.remove("hidden");
+  }
+
+  document.querySelectorAll<HTMLButtonElement>(".audio-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const src = btn.dataset.audio;
+      if (!src) return;
+
+      // If clicking the same button that's playing, pause it
+      if (currentAudio && currentBtn === btn && !currentAudio.paused) {
+        currentAudio.pause();
+        resetBtn(btn);
+        return;
+      }
+
+      // Stop any currently playing audio
+      if (currentAudio) {
+        currentAudio.pause();
+        if (currentBtn) resetBtn(currentBtn);
+      }
+
+      // Play new clip
+      currentAudio = new Audio(src);
+      currentBtn = btn;
+      setPlaying(btn);
+
+      currentAudio.play().catch(() => resetBtn(btn));
+      currentAudio.addEventListener("ended", () => resetBtn(btn));
+    });
+  });
 </script>

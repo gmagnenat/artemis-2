@@ -215,7 +215,7 @@ const rendered = events.map((event, i) => {
         <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
         <span class="mono text-[10px] tracking-widest text-red-400 uppercase">NASA TV Live</span>
       </div>
-      <span class="mono text-[10px] tracking-widest text-lunar-400 uppercase">Artemis II Mission Coverage</span>
+      <span class="mono text-[10px] tracking-widest text-lunar-300 uppercase">Artemis II Mission Coverage</span>
     </div>
   </div>
 
@@ -230,25 +230,26 @@ const rendered = events.map((event, i) => {
         <div class="timeline-content glass">
           <div class="flex items-center gap-3 mb-2">
             <span class={`mono text-[10px] tracking-[0.2em] uppercase ${event.tagColor}`}>{event.tag}</span>
-            <span class="mono text-[10px] text-lunar-400">{event.met}</span>
+            <span class="mono text-[10px] text-lunar-300">{event.met}</span>
           </div>
           <h3 class="font-heading font-extrabold text-base sm:text-lg uppercase tracking-wide text-lunar-100 mb-1.5">{event.title}</h3>
           <p class="text-sm text-lunar-300 leading-relaxed">{event.description}</p>
           <div class="flex items-center justify-between mt-2">
-            <p class="mono text-[10px] text-lunar-400/50">{event.date}</p>
+            <p class="mono text-[10px] text-lunar-300">{event.date}</p>
             {event.hasAudio && (
               <button
                 class="audio-btn flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-space-600/40 hover:bg-space-500/50 transition-colors cursor-pointer border border-glass-border"
                 data-audio={event.audio}
+                aria-label={`Play audio clip: ${event.audioLabel}`}
               >
-                <svg class="audio-icon-play w-2.5 h-2.5 text-accent-gold" viewBox="0 0 12 12" fill="currentColor">
+                <svg class="audio-icon-play w-2.5 h-2.5 text-accent-gold" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
                   <polygon points="2,0 12,6 2,12" />
                 </svg>
-                <svg class="audio-icon-pause w-2.5 h-2.5 text-accent-gold hidden" viewBox="0 0 12 12" fill="currentColor">
+                <svg class="audio-icon-pause w-2.5 h-2.5 text-accent-gold hidden" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
                   <rect x="1" y="0" width="3.5" height="12" />
                   <rect x="7.5" y="0" width="3.5" height="12" />
                 </svg>
-                <span class="mono text-[9px] text-accent-gold/70">{event.audioLabel}</span>
+                <span class="mono text-[9px] text-accent-gold">{event.audioLabel}</span>
               </button>
             )}
           </div>

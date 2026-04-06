@@ -9,7 +9,7 @@ interface Props {
 const { astronaut, index } = Astro.props;
 ---
 
-<div class="card-container" data-card-index={index}>
+<div class="card-container" data-card-index={index} role="button" tabindex="0" aria-label={`${astronaut.name}, ${astronaut.role}. Tap to flip card for details.`}>
   <div class="card-outer-glow"></div>
   <div class="card-inner">
     <!-- FRONT -->
@@ -18,8 +18,8 @@ const { astronaut, index } = Astro.props;
       <div class="card-holo"></div>
       <div class="card-content">
         <div class="flex items-center justify-between w-full mb-4">
-          <span class="mono text-[10px] tracking-[0.2em] text-lunar-400 uppercase">{astronaut.agency}</span>
-          <span class="mono text-[10px] text-lunar-400">#{String(index + 1).padStart(2, "0")}/04</span>
+          <span class="mono text-[10px] tracking-[0.2em] text-lunar-300 uppercase">{astronaut.agency}</span>
+          <span class="mono text-[10px] text-lunar-300">#{String(index + 1).padStart(2, "0")}/04</span>
         </div>
 
         <img
@@ -33,14 +33,14 @@ const { astronaut, index } = Astro.props;
 
         <h3 class="font-heading font-extrabold text-lg mt-5 tracking-wide uppercase">{astronaut.name}</h3>
         <p class="mono text-[11px] text-accent-gold tracking-[0.15em] uppercase mt-1">{astronaut.role}</p>
-        <p class="text-lunar-400 text-xs mt-1">{astronaut.nationality} · {astronaut.stats.background}</p>
+        <p class="text-lunar-300 text-xs mt-1">{astronaut.nationality} · {astronaut.stats.background}</p>
 
         <div class="w-8 h-px bg-glass-border my-4"></div>
 
         <p class="text-lunar-300 text-[13px] leading-relaxed line-clamp-3 text-center">{astronaut.bio}</p>
       </div>
       <div class="mt-auto pt-3 flex justify-center w-full">
-        <span class="mono text-[10px] text-lunar-300/60 uppercase tracking-widest">Tap to flip ↻</span>
+        <span class="mono text-[10px] text-lunar-300 uppercase tracking-widest">Tap to flip ↻</span>
       </div>
     </div>
 
@@ -53,19 +53,19 @@ const { astronaut, index } = Astro.props;
 
         <div class="grid grid-cols-2 gap-4 w-full text-left">
           <div>
-            <span class="mono text-[9px] text-lunar-400 uppercase tracking-wider">Missions</span>
+            <span class="mono text-[9px] text-lunar-300 uppercase tracking-wider">Missions</span>
             <p class="mono text-xl font-medium text-lunar-100 mt-0.5">{astronaut.stats.missions}</p>
           </div>
           <div>
-            <span class="mono text-[9px] text-lunar-400 uppercase tracking-wider">Flight Time</span>
+            <span class="mono text-[9px] text-lunar-300 uppercase tracking-wider">Flight Time</span>
             <p class="mono text-sm font-medium text-lunar-100 mt-0.5">{astronaut.stats.spaceflightTime}</p>
           </div>
           <div>
-            <span class="mono text-[9px] text-lunar-400 uppercase tracking-wider">EVA Time</span>
+            <span class="mono text-[9px] text-lunar-300 uppercase tracking-wider">EVA Time</span>
             <p class="mono text-sm font-medium text-lunar-100 mt-0.5">{astronaut.stats.evaTime}</p>
           </div>
           <div>
-            <span class="mono text-[9px] text-lunar-400 uppercase tracking-wider">Role</span>
+            <span class="mono text-[9px] text-lunar-300 uppercase tracking-wider">Role</span>
             <p class="text-sm font-medium text-accent-gold mt-0.5">{astronaut.role}</p>
           </div>
         </div>
@@ -73,13 +73,13 @@ const { astronaut, index } = Astro.props;
         <div class="w-8 h-px bg-glass-border my-5"></div>
 
         <div class="w-full text-left">
-          <span class="mono text-[9px] uppercase tracking-[0.2em] text-lunar-400">Fun Fact</span>
+          <span class="mono text-[9px] uppercase tracking-[0.2em] text-lunar-300">Fun Fact</span>
           <p class="text-lunar-200 text-[13px] mt-1.5 leading-relaxed">{astronaut.funFact}</p>
         </div>
       </div>
       <div class="mt-auto pt-3 flex items-center justify-between w-full">
-        <span class="font-display text-[10px] uppercase tracking-wider text-lunar-400/30">Artemis II</span>
-        <span class="mono text-[10px] text-accent-cyan/50">Integrity</span>
+        <span class="font-display text-[10px] uppercase tracking-wider text-lunar-300/50">Artemis II</span>
+        <span class="mono text-[10px] text-accent-cyan/80">Integrity</span>
       </div>
     </div>
   </div>
@@ -270,6 +270,13 @@ const { astronaut, index } = Astro.props;
 
     card.addEventListener("click", () => {
       card.classList.toggle("flipped");
+    });
+
+    card.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        card.classList.toggle("flipped");
+      }
     });
   });
 </script>

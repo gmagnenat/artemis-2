@@ -9,7 +9,9 @@
   <!-- Trajectory + Telemetry panel -->
   <div class="glass rounded-xl p-5 sm:p-6">
     <!-- Trajectory diagram -->
-    <svg id="mc-trajectory" viewBox="0 0 700 180" class="w-full h-auto mb-5">
+    <svg id="mc-trajectory" viewBox="0 0 700 180" class="w-full h-auto mb-5" role="img" aria-label="Artemis II trajectory diagram showing Orion's path from Earth around the Moon and back">
+      <title>Artemis II Trajectory</title>
+      <desc>A diagram showing the Orion spacecraft's trajectory from Earth to the Moon and back, with the current position highlighted.</desc>
       <!-- Full trajectory path -->
       <path
         d="M 60 90 C 160 30, 350 10, 500 40
@@ -87,7 +89,7 @@
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.15em;
-    color: var(--color-lunar-400);
+    color: var(--color-lunar-300);
     font-family: var(--font-mono);
   }
   .mc-value {

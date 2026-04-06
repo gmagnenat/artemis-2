@@ -16,7 +16,7 @@ import { CREW } from "../lib/astronauts";
     <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-accent-blue/[0.04] blur-[150px] pointer-events-none"></div>
 
     <div class="relative z-10 text-center max-w-5xl mx-auto">
-      <p class="mono text-[11px] tracking-[0.4em] text-lunar-400 uppercase mb-6">
+      <p class="mono text-[11px] tracking-[0.4em] text-lunar-300 uppercase mb-6">
         NASA · Artemis Program · 2026
       </p>
       <h1 class="font-display font-black uppercase leading-[0.9] tracking-tight">
@@ -27,7 +27,7 @@ import { CREW } from "../lib/astronauts";
       <p class="text-lg sm:text-xl text-lunar-300 mt-8 max-w-2xl mx-auto leading-relaxed">
         Four astronauts. Ten days. Around the Moon and back.
       </p>
-      <p class="text-sm text-lunar-400 mt-2">
+      <p class="text-sm text-lunar-300 mt-2">
         The first crewed lunar mission in over 50 years.
       </p>
     </div>
@@ -36,7 +36,7 @@ import { CREW } from "../lib/astronauts";
       <MissionStatus />
     </div>
 
-    <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-lunar-400/50">
+    <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-lunar-300/70">
       <span class="mono text-[10px] uppercase tracking-[0.3em]">Scroll</span>
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" class="animate-bounce">
         <path d="M4 6l4 4 4-4" />
@@ -44,6 +44,7 @@ import { CREW } from "../lib/astronauts";
     </div>
   </header>
 
+  <main id="main-content">
   <!-- ══ Lunar Flyby Countdown ══ -->
   <section class="px-6 py-16">
     <div class="max-w-5xl mx-auto">
@@ -67,7 +68,7 @@ import { CREW } from "../lib/astronauts";
           Orion<br />
           <span class="text-lunar-400">"Integrity"</span>
         </h2>
-        <p class="text-lunar-400 mt-4 text-base max-w-md">
+        <p class="text-lunar-300 mt-4 text-base max-w-md">
           Four humans chosen to fly farther from Earth than anyone in history. Tap a card to see their stats.
         </p>
       </div>
@@ -114,6 +115,7 @@ import { CREW } from "../lib/astronauts";
       <LunarPhotos />
     </div>
   </section>
+  </main>
 
   <!-- ══ Footer ══ -->
   <footer class="px-6 py-16 border-t border-glass-border">
@@ -122,8 +124,8 @@ import { CREW } from "../lib/astronauts";
         <p class="font-display font-bold uppercase text-sm tracking-wider text-lunar-400">Artemis II</p>
       </div>
       <div class="text-center sm:text-right">
-        <p class="mono text-[11px] text-lunar-400">Data from NASA JPL Horizons · Images NASA Public Domain</p>
-        <p class="mono text-[11px] text-lunar-400/50 mt-1">Built with Astro, GSAP, and too much coffee</p>
+        <p class="mono text-[11px] text-lunar-300">Data from NASA JPL Horizons · Images NASA Public Domain</p>
+        <p class="mono text-[11px] text-lunar-300 mt-1">Built with Astro, GSAP, and too much coffee</p>
       </div>
     </div>
   </footer>

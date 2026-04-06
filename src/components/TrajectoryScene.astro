@@ -21,10 +21,10 @@
       <path
         id="mc-traj-path"
         d="M 80 100
-           C 200 30, 420 15, 560 55
-           C 600 68, 625 82, 630 100
-           C 625 118, 600 132, 560 145
-           C 420 185, 200 170, 80 100"
+           C 250 25, 500 15, 610 60
+           C 650 75, 670 90, 670 100
+           C 670 110, 650 125, 610 140
+           C 500 185, 250 175, 80 100"
         fill="none"
         stroke="#06b6d4"
         stroke-width="1"
@@ -137,7 +137,34 @@
     const now = Date.now();
     if (now <= launchMs) return 0;
     if (now >= splashMs) return 1;
-    return (now - launchMs) / totalMs;
+    const timeProgress = (now - launchMs) / totalMs;
+
+    // Remap time progress to path progress.
+    // The Moon flyby is at ~55% of mission time but ~50% of path length.
+    // Outbound is slower (coasting), return is faster.
+    // Use piecewise linear mapping: time → path
+    const map: [number, number][] = [
+      [0, 0],        // launch
+      [0.10, 0.05],  // early orbit maneuvers (slow, near Earth)
+      [0.15, 0.10],  // TLI burn
+      [0.35, 0.30],  // mid outbound coast
+      [0.50, 0.45],  // approaching Moon
+      [0.55, 0.50],  // closest approach = midpoint of path
+      [0.60, 0.55],  // departing Moon
+      [0.75, 0.70],  // mid return coast
+      [0.90, 0.88],  // approaching Earth
+      [1, 1],        // splashdown
+    ];
+
+    for (let i = 0; i < map.length - 1; i++) {
+      const [t0, p0] = map[i];
+      const [t1, p1] = map[i + 1];
+      if (timeProgress >= t0 && timeProgress <= t1) {
+        const t = (timeProgress - t0) / (t1 - t0);
+        return p0 + t * (p1 - p0);
+      }
+    }
+    return timeProgress;
   }
 
   function formatDist(km: number): string {

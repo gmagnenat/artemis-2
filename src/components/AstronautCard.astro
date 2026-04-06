@@ -10,9 +10,11 @@ const { astronaut, index } = Astro.props;
 ---
 
 <div class="card-container" data-card-index={index}>
+  <div class="card-outer-glow"></div>
   <div class="card-inner">
     <!-- FRONT -->
     <div class="card-face card-front glass">
+      <div class="card-border-glow"></div>
       <div class="card-holo"></div>
       <div class="card-content">
         <div class="flex items-center justify-between w-full mb-4">
@@ -38,12 +40,13 @@ const { astronaut, index } = Astro.props;
         <p class="text-lunar-300 text-[13px] leading-relaxed line-clamp-3 text-center">{astronaut.bio}</p>
       </div>
       <div class="mt-auto pt-3 flex justify-center w-full">
-        <span class="mono text-[9px] text-lunar-400/40 uppercase tracking-widest">Tap to flip</span>
+        <span class="mono text-[10px] text-lunar-300/60 uppercase tracking-widest">Tap to flip ↻</span>
       </div>
     </div>
 
     <!-- BACK -->
     <div class="card-face card-back glass">
+      <div class="card-border-glow"></div>
       <div class="card-holo"></div>
       <div class="card-content">
         <h3 class="font-heading font-extrabold text-base uppercase tracking-wide mb-5">{astronaut.name}</h3>
@@ -110,10 +113,46 @@ const { astronaut, index } = Astro.props;
     flex-direction: column;
     padding: 24px;
     overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    transition: border-color 0.4s, box-shadow 0.4s;
+  }
+
+  .card-container:hover .card-face {
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow:
+      0 0 20px rgba(59, 130, 246, 0.1),
+      0 0 60px rgba(6, 182, 212, 0.05),
+      inset 0 0 30px rgba(59, 130, 246, 0.03);
   }
 
   .card-back {
     transform: rotateY(180deg);
+  }
+
+  /* Animated border glow — follows mouse position */
+  .card-border-glow {
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+    z-index: 3;
+    background: radial-gradient(
+      300px circle at var(--glow-x, 50%) var(--glow-y, 50%),
+      rgba(59, 130, 246, 0.15),
+      rgba(6, 182, 212, 0.08) 40%,
+      transparent 70%
+    );
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    padding: 1px;
+  }
+
+  .card-container:hover .card-border-glow {
+    opacity: 1;
   }
 
   /* Holographic shimmer */
@@ -121,14 +160,15 @@ const { astronaut, index } = Astro.props;
     position: absolute;
     inset: 0;
     opacity: 0;
-    transition: opacity 0.3s;
+    transition: opacity 0.4s;
     background: conic-gradient(
       from var(--holo-angle, 0deg) at var(--holo-x, 50%) var(--holo-y, 50%),
       rgba(255, 255, 255, 0) 0%,
-      rgba(59, 130, 246, 0.18) 20%,
-      rgba(6, 182, 212, 0.18) 40%,
-      rgba(245, 158, 11, 0.15) 60%,
-      rgba(239, 68, 68, 0.1) 80%,
+      rgba(59, 130, 246, 0.25) 15%,
+      rgba(6, 182, 212, 0.25) 30%,
+      rgba(245, 158, 11, 0.2) 45%,
+      rgba(168, 85, 247, 0.15) 60%,
+      rgba(239, 68, 68, 0.12) 75%,
       rgba(255, 255, 255, 0) 100%
     );
     mix-blend-mode: overlay;
@@ -138,6 +178,27 @@ const { astronaut, index } = Astro.props;
   }
 
   .card-container:hover .card-holo {
+    opacity: 1;
+  }
+
+  /* Outer glow behind the card */
+  .card-outer-glow {
+    position: absolute;
+    inset: -4px;
+    border-radius: 20px;
+    opacity: 0;
+    transition: opacity 0.5s;
+    pointer-events: none;
+    z-index: -1;
+    background: radial-gradient(
+      400px circle at var(--glow-x, 50%) var(--glow-y, 50%),
+      rgba(59, 130, 246, 0.1),
+      transparent 60%
+    );
+    filter: blur(8px);
+  }
+
+  .card-container:hover .card-outer-glow {
     opacity: 1;
   }
 
@@ -156,8 +217,14 @@ const { astronaut, index } = Astro.props;
     border-radius: 50%;
     object-fit: cover;
     object-position: top center;
-    border: 2px solid var(--color-glass-border);
+    border: 2px solid rgba(255, 255, 255, 0.08);
     background: linear-gradient(135deg, var(--color-space-600), var(--color-space-500));
+    transition: border-color 0.4s, box-shadow 0.4s;
+  }
+
+  .card-container:hover .crew-photo {
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.15), 0 0 40px rgba(6, 182, 212, 0.08);
   }
 
   .line-clamp-3 {
@@ -183,10 +250,15 @@ const { astronaut, index } = Astro.props;
       inner.style.transform = `rotateX(${rotateX}deg) rotateY(${baseY + rotateY}deg)`;
       inner.style.transition = "transform 0.1s ease-out";
 
+      // Holographic shimmer
       const holoAngle = Math.atan2(y - 0.5, x - 0.5) * (180 / Math.PI) + 180;
       card.style.setProperty("--holo-x", `${x * 100}%`);
       card.style.setProperty("--holo-y", `${y * 100}%`);
       card.style.setProperty("--holo-angle", `${holoAngle}deg`);
+
+      // Border glow + outer glow follow mouse
+      card.style.setProperty("--glow-x", `${x * 100}%`);
+      card.style.setProperty("--glow-y", `${y * 100}%`);
     });
 
     card.addEventListener("mouseleave", () => {

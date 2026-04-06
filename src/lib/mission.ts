@@ -6,8 +6,8 @@ export const MISSION = {
   launchTime: new Date("2026-04-01T22:35:12Z"),
   splashdownTime: new Date("2026-04-11T00:17:00Z"),
   closestApproach: new Date("2026-04-06T23:01:00Z"),
-  maxEarthDistance: 406_775, // km (surface-to-surface)
-  closestMoonDistance: 8_282.5, // km (surface-to-surface)
+  maxEarthDistance: 406_778, // km (surface-to-surface, 252,760 mi)
+  closestMoonDistance: 6_550, // km (surface-to-surface, 4,070 mi)
 } as const;
 
 export type MissionPhase =

@@ -7,49 +7,64 @@ import { CREW } from "../lib/astronauts";
 ---
 
 <Layout>
-  <!-- Hero -->
-  <header class="relative min-h-screen flex flex-col items-center justify-center px-4 py-20">
-    <!-- Subtle radial glow behind title -->
-    <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-accent-blue/5 blur-[120px] pointer-events-none"></div>
+  <!-- ══ Hero ══ -->
+  <header class="relative min-h-screen flex flex-col items-center justify-center px-6 py-24">
+    <!-- Background glow -->
+    <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-accent-blue/[0.04] blur-[150px] pointer-events-none"></div>
 
-    <div class="relative z-10 text-center max-w-3xl mx-auto">
-      <p class="mono text-xs tracking-[0.3em] text-lunar-400 uppercase mb-4">NASA · Artemis Program · 2026</p>
-      <h1 class="text-5xl sm:text-7xl font-bold tracking-tight leading-[1.1]">
-        Artemis <span class="text-accent-blue">II</span>
-      </h1>
-      <p class="text-lg sm:text-xl text-lunar-300 mt-4 max-w-xl mx-auto leading-relaxed">
-        Four astronauts. Ten days. Around the Moon and back.
+    <div class="relative z-10 text-center max-w-5xl mx-auto">
+      <!-- Eyebrow -->
+      <p class="mono text-[11px] tracking-[0.4em] text-lunar-400 uppercase mb-6">
+        NASA · Artemis Program · 2026
+      </p>
+
+      <!-- Title — Monument Extended, massive -->
+      <h1 class="font-display font-black uppercase leading-[0.9] tracking-tight">
+        <span class="text-[clamp(4rem,12vw,10rem)] text-gradient">Artemis</span>
         <br />
-        <span class="text-lunar-400">The first crewed lunar mission in over 50 years.</span>
+        <span class="text-[clamp(4rem,12vw,10rem)] text-accent-blue">II</span>
+      </h1>
+
+      <!-- Subtitle -->
+      <p class="text-lg sm:text-xl text-lunar-300 mt-8 max-w-2xl mx-auto leading-relaxed">
+        Four astronauts. Ten days. Around the Moon and back.
+      </p>
+      <p class="text-sm text-lunar-400 mt-2">
+        The first crewed lunar mission in over 50 years.
       </p>
     </div>
 
-    <!-- Mission Status Bar -->
-    <div class="relative z-10 w-full max-w-4xl mx-auto mt-12">
+    <!-- Mission Status -->
+    <div class="relative z-10 w-full max-w-5xl mx-auto mt-16">
       <MissionStatus />
     </div>
 
     <!-- Scroll indicator -->
-    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-lunar-400 animate-bounce">
-      <span class="text-xs uppercase tracking-widest">Crew</span>
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M5 8l5 5 5-5" />
+    <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-lunar-400/50">
+      <span class="mono text-[10px] uppercase tracking-[0.3em]">Scroll</span>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" class="animate-bounce">
+        <path d="M4 6l4 4 4-4" />
       </svg>
     </div>
   </header>
 
-  <!-- Crew Section -->
-  <section class="px-4 py-20">
+  <!-- ══ Crew ══ -->
+  <section class="px-6 py-28">
     <div class="max-w-6xl mx-auto">
-      <div class="text-center mb-16">
-        <p class="mono text-xs tracking-[0.3em] text-lunar-400 uppercase mb-2">The Crew of</p>
-        <h2 class="text-3xl sm:text-4xl font-bold">
-          Orion <span class="text-accent-gold">"Integrity"</span>
+      <!-- Section header -->
+      <div class="mb-20">
+        <p class="font-heading font-extrabold text-[11px] tracking-[0.35em] text-accent-gold uppercase mb-4">The Crew</p>
+        <h2 class="font-display font-bold uppercase text-[clamp(2.5rem,6vw,5rem)] leading-[0.95] tracking-tight">
+          Orion<br />
+          <span class="text-lunar-400">"Integrity"</span>
         </h2>
-        <p class="text-lunar-400 mt-2 text-sm">Tap a card to see stats</p>
+        <p class="text-lunar-400 mt-4 text-base max-w-md">
+          Four humans chosen to fly farther from Earth than anyone in history. Tap a card to see their stats.
+        </p>
       </div>
 
-      <div class="flex flex-wrap justify-center gap-8">
+      <!-- Cards grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {CREW.map((astronaut, i) => (
           <AstronautCard astronaut={astronaut} index={i} />
         ))}
@@ -57,22 +72,30 @@ import { CREW } from "../lib/astronauts";
     </div>
   </section>
 
-  <!-- 3D Scene placeholder -->
-  <section id="trajectory" class="px-4 py-20">
+  <!-- ══ Mission Control ══ -->
+  <section id="trajectory" class="px-6 py-28">
     <div class="max-w-6xl mx-auto">
-      <div class="text-center mb-8">
-        <p class="mono text-xs tracking-[0.3em] text-lunar-400 uppercase mb-2">Mission Control</p>
-        <h2 class="text-3xl sm:text-4xl font-bold">
-          Live from <span class="text-accent-cyan">Orion</span>
+      <div class="mb-12">
+        <p class="font-heading font-extrabold text-[11px] tracking-[0.35em] text-accent-cyan uppercase mb-4">Mission Control</p>
+        <h2 class="font-display font-bold uppercase text-[clamp(2.5rem,6vw,5rem)] leading-[0.95] tracking-tight">
+          Live from<br />
+          <span class="text-accent-cyan">Orion</span>
         </h2>
       </div>
       <TrajectoryScene />
     </div>
   </section>
 
-  <!-- Footer -->
-  <footer class="px-4 py-12 text-center text-lunar-400 text-xs">
-    <p>Data from NASA JPL Horizons · Images NASA Public Domain</p>
-    <p class="mt-1">Built with Astro, Three.js, and too much coffee</p>
+  <!-- ══ Footer ══ -->
+  <footer class="px-6 py-16 border-t border-glass-border">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div>
+        <p class="font-display font-bold uppercase text-sm tracking-wider text-lunar-400">Artemis II</p>
+      </div>
+      <div class="text-center sm:text-right">
+        <p class="mono text-[11px] text-lunar-400">Data from NASA JPL Horizons · Images NASA Public Domain</p>
+        <p class="mono text-[11px] text-lunar-400/50 mt-1">Built with Astro, GSAP, and too much coffee</p>
+      </div>
+    </div>
   </footer>
 </Layout>

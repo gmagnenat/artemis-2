@@ -1,7 +1,65 @@
 @import "tailwindcss";
 
+/* ── Font faces ── */
+
+@font-face {
+  font-family: "Monument Extended";
+  src: url("/fonts/PPMonumentExtended-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Monument Extended";
+  src: url("/fonts/PPMonumentExtended-Black.woff2") format("woff2");
+  font-weight: 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Neue Machina";
+  src: url("/fonts/PPNeueMachina-InktrapRegular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Neue Machina";
+  src: url("/fonts/PPNeueMachina-InktrapUltrabold.woff2") format("woff2");
+  font-weight: 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Neue Montreal";
+  src: url("/fonts/PPNeueMontreal-Book.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Neue Montreal";
+  src: url("/fonts/PPNeueMontreal-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Neue Montreal";
+  src: url("/fonts/PPNeueMontreal-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Neue Montreal Mono";
+  src: url("/fonts/PPNeueMontrealMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Neue Montreal Mono";
+  src: url("/fonts/PPNeueMontrealMono-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+
+/* ── Theme ── */
+
 @theme {
-  /* Artemis color palette — deep space with lunar accents */
   --color-space-900: #04060b;
   --color-space-800: #0a0f1a;
   --color-space-700: #111827;
@@ -18,60 +76,57 @@
   --color-accent-gold: #f59e0b;
   --color-accent-red: #ef4444;
 
-  --color-glass: rgba(255, 255, 255, 0.05);
-  --color-glass-border: rgba(255, 255, 255, 0.08);
-  --color-glass-hover: rgba(255, 255, 255, 0.1);
+  --color-glass: rgba(255, 255, 255, 0.04);
+  --color-glass-border: rgba(255, 255, 255, 0.07);
+  --color-glass-hover: rgba(255, 255, 255, 0.08);
 
-  --font-sans: "Space Grotesk", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+  --font-display: "Monument Extended", system-ui, sans-serif;
+  --font-heading: "Neue Machina", system-ui, sans-serif;
+  --font-sans: "Neue Montreal", system-ui, sans-serif;
+  --font-mono: "Neue Montreal Mono", "JetBrains Mono", monospace;
 }
 
-/* Base styles */
-html {
-  scroll-behavior: smooth;
-}
+/* ── Base ── */
+
+html { scroll-behavior: smooth; }
 
 body {
   background-color: var(--color-space-900);
-  color: var(--color-lunar-100);
+  color: var(--color-lunar-200);
   font-family: var(--font-sans);
+  font-weight: 400;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Noise texture overlay */
+/* Noise overlay */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  opacity: 0.03;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 256px 256px;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px;
 }
 
-/* Glassmorphism panel */
+/* ── Utilities ── */
+
 .glass {
   background: var(--color-glass);
   border: 1px solid var(--color-glass-border);
-  backdrop-filter: blur(12px);
-  border-radius: 12px;
+  backdrop-filter: blur(16px);
+  border-radius: 16px;
 }
 
-.glass:hover {
-  background: var(--color-glass-hover);
-}
+.font-display { font-family: var(--font-display); }
+.font-heading { font-family: var(--font-heading); }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 
-/* Mission phase indicator colors */
-.phase-launch { color: var(--color-accent-red); }
-.phase-transit { color: var(--color-accent-blue); }
-.phase-lunar { color: var(--color-accent-gold); }
-.phase-return { color: var(--color-accent-cyan); }
-
-/* Telemetry-style mono numbers */
-.mono {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.05em;
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-lunar-100) 0%, var(--color-lunar-300) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

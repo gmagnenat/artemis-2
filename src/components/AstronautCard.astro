@@ -15,28 +15,30 @@ const { astronaut, index } = Astro.props;
     <div class="card-face card-front glass">
       <div class="card-holo"></div>
       <div class="card-content">
-        <div class="card-badge">
-          <span class="mono text-xs tracking-widest text-lunar-300 uppercase">{astronaut.agency}</span>
+        <div class="flex items-center justify-between w-full mb-4">
+          <span class="mono text-[10px] tracking-[0.2em] text-lunar-400 uppercase">{astronaut.agency}</span>
+          <span class="mono text-[10px] text-lunar-400">#{String(index + 1).padStart(2, "0")}/04</span>
         </div>
-        <div class="card-photo">
-          <img
-            src={astronaut.photo}
-            alt={astronaut.name}
-            class="crew-photo"
-            loading="lazy"
-            width="100"
-            height="100"
-          />
-        </div>
-        <h3 class="text-xl font-semibold mt-4">{astronaut.name}</h3>
-        <p class="text-accent-gold text-sm font-medium uppercase tracking-wider">{astronaut.role}</p>
+
+        <img
+          src={astronaut.photo}
+          alt={astronaut.name}
+          class="crew-photo"
+          loading="lazy"
+          width="120"
+          height="120"
+        />
+
+        <h3 class="font-heading font-extrabold text-lg mt-5 tracking-wide uppercase">{astronaut.name}</h3>
+        <p class="mono text-[11px] text-accent-gold tracking-[0.15em] uppercase mt-1">{astronaut.role}</p>
         <p class="text-lunar-400 text-xs mt-1">{astronaut.nationality} · {astronaut.stats.background}</p>
-        <div class="card-divider"></div>
-        <p class="text-lunar-300 text-xs leading-relaxed line-clamp-3">{astronaut.bio}</p>
+
+        <div class="w-8 h-px bg-glass-border my-4"></div>
+
+        <p class="text-lunar-300 text-[13px] leading-relaxed line-clamp-3 text-center">{astronaut.bio}</p>
       </div>
-      <div class="card-footer mono">
-        <span class="text-[10px] text-lunar-400">ARTEMIS II · 2026</span>
-        <span class="text-[10px] text-lunar-400">#{String(index + 1).padStart(2, "0")}/04</span>
+      <div class="mt-auto pt-3 flex justify-center w-full">
+        <span class="mono text-[9px] text-lunar-400/40 uppercase tracking-widest">Tap to flip</span>
       </div>
     </div>
 
@@ -44,34 +46,37 @@ const { astronaut, index } = Astro.props;
     <div class="card-face card-back glass">
       <div class="card-holo"></div>
       <div class="card-content">
-        <h3 class="text-lg font-semibold mb-4">{astronaut.name}</h3>
-        <div class="stats-grid">
-          <div class="stat">
-            <span class="stat-label">MISSIONS</span>
-            <span class="stat-value mono">{astronaut.stats.missions}</span>
+        <h3 class="font-heading font-extrabold text-base uppercase tracking-wide mb-5">{astronaut.name}</h3>
+
+        <div class="grid grid-cols-2 gap-4 w-full text-left">
+          <div>
+            <span class="mono text-[9px] text-lunar-400 uppercase tracking-wider">Missions</span>
+            <p class="mono text-xl font-medium text-lunar-100 mt-0.5">{astronaut.stats.missions}</p>
           </div>
-          <div class="stat">
-            <span class="stat-label">FLIGHT TIME</span>
-            <span class="stat-value mono text-sm">{astronaut.stats.spaceflightTime}</span>
+          <div>
+            <span class="mono text-[9px] text-lunar-400 uppercase tracking-wider">Flight Time</span>
+            <p class="mono text-sm font-medium text-lunar-100 mt-0.5">{astronaut.stats.spaceflightTime}</p>
           </div>
-          <div class="stat">
-            <span class="stat-label">EVA TIME</span>
-            <span class="stat-value mono text-sm">{astronaut.stats.evaTime}</span>
+          <div>
+            <span class="mono text-[9px] text-lunar-400 uppercase tracking-wider">EVA Time</span>
+            <p class="mono text-sm font-medium text-lunar-100 mt-0.5">{astronaut.stats.evaTime}</p>
           </div>
-          <div class="stat">
-            <span class="stat-label">ROLE</span>
-            <span class="stat-value text-sm text-accent-gold">{astronaut.role}</span>
+          <div>
+            <span class="mono text-[9px] text-lunar-400 uppercase tracking-wider">Role</span>
+            <p class="text-sm font-medium text-accent-gold mt-0.5">{astronaut.role}</p>
           </div>
         </div>
-        <div class="card-divider"></div>
-        <div class="fun-fact">
-          <span class="text-[10px] uppercase tracking-widest text-lunar-400">Fun Fact</span>
-          <p class="text-lunar-200 text-xs mt-1 leading-relaxed">{astronaut.funFact}</p>
+
+        <div class="w-8 h-px bg-glass-border my-5"></div>
+
+        <div class="w-full text-left">
+          <span class="mono text-[9px] uppercase tracking-[0.2em] text-lunar-400">Fun Fact</span>
+          <p class="text-lunar-200 text-[13px] mt-1.5 leading-relaxed">{astronaut.funFact}</p>
         </div>
       </div>
-      <div class="card-footer mono">
-        <span class="text-[10px] text-lunar-400">TAP TO FLIP</span>
-        <span class="text-[10px] text-accent-cyan">INTEGRITY</span>
+      <div class="mt-auto pt-3 flex items-center justify-between w-full">
+        <span class="font-display text-[10px] uppercase tracking-wider text-lunar-400/30">Artemis II</span>
+        <span class="mono text-[10px] text-accent-cyan/50">Integrity</span>
       </div>
     </div>
   </div>
@@ -80,8 +85,8 @@ const { astronaut, index } = Astro.props;
 <style>
   .card-container {
     perspective: 1200px;
-    width: 280px;
-    height: 400px;
+    width: 100%;
+    height: 480px;
     cursor: pointer;
   }
 
@@ -103,7 +108,7 @@ const { astronaut, index } = Astro.props;
     backface-visibility: hidden;
     display: flex;
     flex-direction: column;
-    padding: 20px;
+    padding: 24px;
     overflow: hidden;
   }
 
@@ -111,7 +116,7 @@ const { astronaut, index } = Astro.props;
     transform: rotateY(180deg);
   }
 
-  /* Holographic shimmer overlay */
+  /* Holographic shimmer */
   .card-holo {
     position: absolute;
     inset: 0;
@@ -120,9 +125,9 @@ const { astronaut, index } = Astro.props;
     background: conic-gradient(
       from var(--holo-angle, 0deg) at var(--holo-x, 50%) var(--holo-y, 50%),
       rgba(255, 255, 255, 0) 0%,
-      rgba(59, 130, 246, 0.15) 20%,
-      rgba(6, 182, 212, 0.15) 40%,
-      rgba(245, 158, 11, 0.12) 60%,
+      rgba(59, 130, 246, 0.18) 20%,
+      rgba(6, 182, 212, 0.18) 40%,
+      rgba(245, 158, 11, 0.15) 60%,
       rgba(239, 68, 68, 0.1) 80%,
       rgba(255, 255, 255, 0) 100%
     );
@@ -143,20 +148,11 @@ const { astronaut, index } = Astro.props;
     display: flex;
     flex-direction: column;
     align-items: center;
-    text-align: center;
-  }
-
-  .card-badge {
-    align-self: flex-start;
-  }
-
-  .card-photo {
-    margin-top: 12px;
   }
 
   .crew-photo {
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     object-fit: cover;
     object-position: top center;
@@ -164,53 +160,6 @@ const { astronaut, index } = Astro.props;
     background: linear-gradient(135deg, var(--color-space-600), var(--color-space-500));
   }
 
-  .card-divider {
-    width: 40px;
-    height: 1px;
-    background: var(--color-glass-border);
-    margin: 12px 0;
-  }
-
-  .card-footer {
-    display: flex;
-    justify-content: space-between;
-    position: relative;
-    z-index: 1;
-  }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    width: 100%;
-    text-align: left;
-  }
-
-  .stat {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .stat-label {
-    font-size: 9px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--color-lunar-400);
-  }
-
-  .stat-value {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--color-lunar-100);
-  }
-
-  .fun-fact {
-    text-align: left;
-    width: 100%;
-  }
-
-  /* Line clamp utility */
   .line-clamp-3 {
     display: -webkit-box;
     -webkit-line-clamp: 3;
@@ -220,53 +169,35 @@ const { astronaut, index } = Astro.props;
 </style>
 
 <script>
-  // Card interactions: parallax tilt, holographic shimmer, flip
   document.querySelectorAll<HTMLDivElement>(".card-container").forEach((card) => {
-    const holo = card.querySelector<HTMLDivElement>(".card-holo");
-
-    // Parallax tilt on mousemove
     card.addEventListener("mousemove", (e) => {
       const rect = card.getBoundingClientRect();
       const x = (e.clientX - rect.left) / rect.width;
       const y = (e.clientY - rect.top) / rect.height;
-
-      const rotateX = (0.5 - y) * 20;
-      const rotateY = (x - 0.5) * 20;
+      const rotateX = (0.5 - y) * 15;
+      const rotateY = (x - 0.5) * 15;
 
       const inner = card.querySelector<HTMLDivElement>(".card-inner");
       if (!inner) return;
-
-      const isFlipped = card.classList.contains("flipped");
-      const baseRotateY = isFlipped ? 180 : 0;
-      inner.style.transform = `rotateX(${rotateX}deg) rotateY(${baseRotateY + rotateY}deg)`;
+      const baseY = card.classList.contains("flipped") ? 180 : 0;
+      inner.style.transform = `rotateX(${rotateX}deg) rotateY(${baseY + rotateY}deg)`;
       inner.style.transition = "transform 0.1s ease-out";
 
-      // Move holographic shimmer
-      if (holo) {
-        const holoAngle = Math.atan2(y - 0.5, x - 0.5) * (180 / Math.PI) + 180;
-        card.style.setProperty("--holo-x", `${x * 100}%`);
-        card.style.setProperty("--holo-y", `${y * 100}%`);
-        card.style.setProperty("--holo-angle", `${holoAngle}deg`);
-      }
+      const holoAngle = Math.atan2(y - 0.5, x - 0.5) * (180 / Math.PI) + 180;
+      card.style.setProperty("--holo-x", `${x * 100}%`);
+      card.style.setProperty("--holo-y", `${y * 100}%`);
+      card.style.setProperty("--holo-angle", `${holoAngle}deg`);
     });
 
-    // Reset tilt on mouse leave
     card.addEventListener("mouseleave", () => {
       const inner = card.querySelector<HTMLDivElement>(".card-inner");
       if (!inner) return;
-
-      const isFlipped = card.classList.contains("flipped");
-      inner.style.transform = isFlipped ? "rotateY(180deg)" : "";
+      inner.style.transform = card.classList.contains("flipped") ? "rotateY(180deg)" : "";
       inner.style.transition = "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)";
     });
 
-    // Flip on click
     card.addEventListener("click", () => {
       card.classList.toggle("flipped");
-      const inner = card.querySelector<HTMLDivElement>(".card-inner");
-      if (inner) {
-        inner.style.transition = "transform 0.7s cubic-bezier(0.4, 0, 0.2, 1)";
-      }
     });
   });
 </script>

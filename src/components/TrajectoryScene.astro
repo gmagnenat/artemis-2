@@ -79,21 +79,21 @@
     </svg>
 
     <!-- Telemetry grid -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
       <div class="mc-tel">
         <span class="mc-label">Mission Elapsed Time</span>
         <span id="mc-met" class="mc-value mono">--:--:--:--</span>
       </div>
       <div class="mc-tel">
         <span class="mc-label">Current Phase</span>
-        <span id="mc-phase" class="mc-value text-accent-gold">---</span>
+        <span id="mc-phase" class="mc-value font-heading font-extrabold text-accent-gold">---</span>
       </div>
       <div class="mc-tel">
-        <span class="mc-label">Distance from Earth</span>
+        <span class="mc-label">Earth Distance</span>
         <span id="mc-earth-dist" class="mc-value mono">--- km</span>
       </div>
       <div class="mc-tel">
-        <span class="mc-label">Distance from Moon</span>
+        <span class="mc-label">Moon Distance</span>
         <span id="mc-moon-dist" class="mc-value mono">--- km</span>
       </div>
     </div>
@@ -109,17 +109,17 @@
   .mc-label {
     font-size: 10px;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.15em;
     color: var(--color-lunar-400);
     font-family: var(--font-mono);
   }
   .mc-value {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 20px;
+    font-weight: 500;
     color: var(--color-lunar-100);
   }
   @media (max-width: 640px) {
-    .mc-value { font-size: 14px; }
+    .mc-value { font-size: 15px; }
   }
 </style>
 

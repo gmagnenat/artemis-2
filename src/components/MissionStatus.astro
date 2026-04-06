@@ -76,25 +76,11 @@ import { MISSION } from "../lib/mission";
     update();
   });
 
-  function getDistances(): DistanceSample {
+  function getDistances(): DistanceSample | null {
     if (trajectoryData) {
       return getDistancesAt(trajectoryData.spacecraft, trajectoryData.moon, new Date());
     }
-    // Before data loads, return a rough estimate so the UI is not blank.
-    const met = getMissionElapsedTime();
-    const totalMission = (MISSION.splashdownTime.getTime() - MISSION.launchTime.getTime()) / 1000;
-    const progress = Math.min(1, met / totalMission);
-    const peakProgress = 0.55;
-    let earthDist: number;
-    if (progress < peakProgress) {
-      earthDist = (progress / peakProgress) * MISSION.maxEarthDistance;
-    } else {
-      earthDist = MISSION.maxEarthDistance * (1 - (progress - peakProgress) / (1 - peakProgress));
-    }
-    return {
-      earth: Math.max(0, earthDist),
-      moon: Math.max(0, Math.abs(376_292 - earthDist)),
-    };
+    return null;
   }
 
   function formatDist(km: number): string {
@@ -135,8 +121,10 @@ import { MISSION } from "../lib/mission";
     metDisplay.textContent = formatMET(met);
     phaseDisplay.textContent = phase.label;
     phaseDisplay.style.color = phase.color;
-    earthDistance.textContent = formatDist(distances.earth);
-    moonDistance.textContent = formatDist(distances.moon);
+    if (distances) {
+      earthDistance.textContent = formatDist(distances.earth);
+      moonDistance.textContent = formatDist(distances.moon);
+    }
     velocityDisplay.textContent = velocity > 0 ? formatVelocity(velocity) : "--- km/h";
 
     if (isArchiveMode()) {

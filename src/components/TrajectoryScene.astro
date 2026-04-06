@@ -195,21 +195,11 @@
     phaseEl.textContent = phase.label;
     phaseEl.style.color = phase.color;
 
-    // Distances
+    // Distances — only show when real data is available
     if (trajectoryData) {
       const dist = getDistancesAt(trajectoryData.spacecraft, trajectoryData.moon, new Date());
       earthDistEl.textContent = formatDist(dist.earth);
       moonDistEl.textContent = formatDist(dist.moon);
-    } else {
-      const peak = 0.55;
-      let earthKm: number;
-      if (progress < peak) {
-        earthKm = (progress / peak) * MISSION.maxEarthDistance;
-      } else {
-        earthKm = MISSION.maxEarthDistance * (1 - (progress - peak) / (1 - peak));
-      }
-      earthDistEl.textContent = formatDist(Math.max(0, earthKm));
-      moonDistEl.textContent = formatDist(Math.max(0, 376_292 - earthKm));
     }
 
     // Orion position on path

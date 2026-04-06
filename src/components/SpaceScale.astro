@@ -30,11 +30,8 @@
   loadTrajectory().then((d) => { data = d; update(); });
 
   function update() {
-    let earthKm = 390_000;
-    if (data) {
-      const dist = getDistancesAt(data.spacecraft, data.moon, new Date());
-      earthKm = dist.earth;
-    }
+    if (!data) return;
+    const earthKm = Math.max(0, getDistancesAt(data.spacecraft, data.moon, new Date()).earth);
 
     if (earthKm >= 1_000) {
       distEl.textContent = `${Math.round(earthKm).toLocaleString("en-US")} km`;

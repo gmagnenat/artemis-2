@@ -73,15 +73,6 @@
   let data: TrajectoryData | null = null;
   loadTrajectory().then((d) => { data = d; update(); });
 
-  function getEarthDist(): number {
-    if (data) return getDistancesAt(data.spacecraft, data.moon, new Date()).earth;
-    const met = getMissionElapsedTime();
-    const progress = Math.min(1, met / (totalMs / 1000));
-    const peak = 0.55;
-    if (progress < peak) return (progress / peak) * MISSION.maxEarthDistance;
-    return MISSION.maxEarthDistance * (1 - (progress - peak) / (1 - peak));
-  }
-
   function update() {
     // Progress
     const met = getMissionElapsedTime();
@@ -89,8 +80,9 @@
     pctEl.textContent = Math.round(pct).toString();
     barEl.style.width = `${pct}%`;
 
-    // Distance
-    const km = Math.max(0, getEarthDist());
+    // Distance — wait for real data
+    if (!data) return;
+    const km = Math.max(0, getDistancesAt(data.spacecraft, data.moon, new Date()).earth);
     distEl.textContent = Math.round(km).toLocaleString("en-US");
 
     // Comparisons

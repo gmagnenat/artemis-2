@@ -1,0 +1,107 @@
+---
+import { MISSION } from "../lib/mission";
+---
+
+<div id="mission-status" class="glass px-6 py-4">
+  <div class="flex flex-wrap items-center justify-between gap-4 text-center sm:text-left">
+    <div class="status-item">
+      <span class="label">MISSION ELAPSED TIME</span>
+      <span id="met-display" class="value mono">--:--:--:--</span>
+    </div>
+    <div class="status-item">
+      <span class="label">PHASE</span>
+      <span id="phase-display" class="value text-accent-gold">Loading...</span>
+    </div>
+    <div class="status-item">
+      <span class="label">DISTANCE FROM EARTH</span>
+      <span id="earth-distance" class="value mono">--- km</span>
+    </div>
+    <div class="status-item">
+      <span class="label">DISTANCE FROM MOON</span>
+      <span id="moon-distance" class="value mono">--- km</span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .status-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 140px;
+  }
+
+  .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--color-lunar-400);
+  }
+
+  .value {
+    font-size: 18px;
+    font-weight: 600;
+  }
+</style>
+
+<script>
+  import { getMissionElapsedTime, getMissionPhase, formatMET, isArchiveMode, MISSION } from "../lib/mission";
+
+  const metDisplay = document.getElementById("met-display")!;
+  const phaseDisplay = document.getElementById("phase-display")!;
+  const earthDistance = document.getElementById("earth-distance")!;
+  const moonDistance = document.getElementById("moon-distance")!;
+
+  // Rough distance interpolation based on mission phase
+  // Will be replaced with real Horizons data
+  function estimateDistances(met: number): { earth: number; moon: number } {
+    const totalMission = (MISSION.splashdownTime.getTime() - MISSION.launchTime.getTime()) / 1000;
+    const progress = Math.min(1, met / totalMission);
+
+    // Simplified trajectory: out to ~413K km, closest moon at ~8.3K km, then return
+    const peakProgress = 0.55; // closest approach is ~55% through mission
+    let earthDist: number;
+    let moonDist: number;
+
+    if (progress < peakProgress) {
+      // Outbound
+      const t = progress / peakProgress;
+      earthDist = t * MISSION.maxEarthDistance;
+      moonDist = 384_400 - earthDist; // rough Earth-Moon distance
+    } else {
+      // Return
+      const t = (progress - peakProgress) / (1 - peakProgress);
+      earthDist = MISSION.maxEarthDistance * (1 - t);
+      moonDist = 384_400 - earthDist;
+    }
+
+    return {
+      earth: Math.max(0, earthDist),
+      moon: Math.max(0, Math.abs(moonDist)),
+    };
+  }
+
+  function formatDist(km: number): string {
+    if (km >= 1_000) return `${(km / 1_000).toFixed(1)}K km`;
+    return `${km.toFixed(0)} km`;
+  }
+
+  function update() {
+    const met = getMissionElapsedTime();
+    const phase = getMissionPhase(met);
+    const distances = estimateDistances(met);
+
+    metDisplay.textContent = formatMET(met);
+    phaseDisplay.textContent = phase.label;
+    phaseDisplay.style.color = phase.color;
+    earthDistance.textContent = formatDist(distances.earth);
+    moonDistance.textContent = formatDist(distances.moon);
+
+    if (isArchiveMode()) {
+      metDisplay.textContent = `✓ ${formatMET(met)}`;
+    }
+  }
+
+  update();
+  setInterval(update, 1000);
+</script>

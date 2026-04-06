@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import MissionStatus from "../components/MissionStatus.astro";
 import AstronautCard from "../components/AstronautCard.astro";
+import TrajectoryScene from "../components/TrajectoryScene.astro";
 import { CREW } from "../lib/astronauts";
 ---
 
@@ -65,13 +66,7 @@ import { CREW } from "../lib/astronauts";
           Earth <span class="text-accent-cyan">→</span> Moon
         </h2>
       </div>
-      <div class="glass aspect-video flex items-center justify-center text-lunar-400">
-        <div class="text-center">
-          <p class="text-2xl mb-2">🌍 ← · · · 🚀 · · · → 🌙</p>
-          <p class="text-sm">3D trajectory visualization coming soon</p>
-          <p class="mono text-xs mt-2 text-lunar-400">Powered by JPL Horizons API · NAIF -1024</p>
-        </div>
-      </div>
+      <TrajectoryScene />
     </div>
   </section>
 

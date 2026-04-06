@@ -182,7 +182,29 @@ const rendered = events.map((event, i) => {
 });
 ---
 
-<div id="news-feed-root">
+<div id="news-feed-root" class="space-y-12">
+  <!-- NASA Live Stream -->
+  <div class="glass rounded-xl overflow-hidden">
+    <div class="relative aspect-video w-full bg-space-800">
+      <iframe
+        src="https://www.youtube.com/embed/6RwfNBtepa4?rel=0&modestbranding=1&playsinline=1"
+        class="absolute inset-0 w-full h-full"
+        title="NASA Artemis II Live Stream"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+        loading="lazy"
+      ></iframe>
+    </div>
+    <div class="flex items-center justify-between px-4 py-3 border-t border-glass-border">
+      <div class="flex items-center gap-2">
+        <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+        <span class="mono text-[10px] tracking-widest text-red-400 uppercase">NASA TV Live</span>
+      </div>
+      <span class="mono text-[10px] tracking-widest text-lunar-400 uppercase">Artemis II Mission Coverage</span>
+    </div>
+  </div>
+
+  <!-- Timeline -->
   <div class="timeline-container">
     {rendered.map((event) => (
       <div class={`timeline-event ${event.stateClass}`} data-met={event.metSeconds}>
